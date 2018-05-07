@@ -1,5 +1,8 @@
 package shin.watchdog.scheduled;
 
+import java.util.ArrayList;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
@@ -10,9 +13,17 @@ public class FetchPostsTask {
     		Executors.newScheduledThreadPool(1);
     
     ScheduledFuture<?> newPostHandle;
+
+    Entry<String, ArrayList<String>> searchEntry;
+
+    Map<String, ArrayList<String>> searchItems;
+
+    public FetchPostsTask(Map<String, ArrayList<String>> searchItems){
+        this.searchItems = searchItems;
+    }
     
     public void start() {
-    	FetchPostRunnable doFetchPosts = new FetchPostRunnable();
+    	FetchPostRunnable doFetchPosts = new FetchPostRunnable(searchItems);
     	
     	// Check posts every x seconds
         newPostHandle =
@@ -20,6 +31,7 @@ public class FetchPostsTask {
     }
     
     public void stop() {
+        System.out.println("Stopping FetchPostsTask");
     	newPostHandle.cancel(false);
     }
 }

@@ -21,6 +21,7 @@ public class RefreshTokenTask {
 	}
 
 	public void stop() {
+		System.out.println("Stopping RefreshTokenTask");
 		refreshTokenHandle.cancel(false);
 	}
 }
