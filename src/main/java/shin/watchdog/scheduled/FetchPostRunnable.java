@@ -182,10 +182,10 @@ public class FetchPostRunnable implements Runnable {
 		String postName = post.name = postData.get("name").getAsString();
 		String title = post.title = postData.get("title").getAsString();
 		String description = post.selftext = postData.get("selftext").getAsString();
-		String author = post.author = postData.get("author").getAsString();
+		// String author = post.author = postData.get("author").getAsString();
 
 		if(checkPotential(title, description)){
-			String subject = "Potential " + Arrays.toString(matchedTerms.toArray()) + " listing found!";
+			String subject = Arrays.toString(matchedTerms.toArray()) + " listing found!";
 			System.out.println("\n\n" + subject);
 	
 			if (!postsCache.getPostNames().contains(postName)) {
