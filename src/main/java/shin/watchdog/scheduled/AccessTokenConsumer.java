@@ -19,7 +19,7 @@ public class AccessTokenConsumer implements Runnable {
 			while (true) {
 				// Wait til a new token is added from the token refresh process
 				String token = queue.take();
-				// System.out.println("Token " + token + " consumed\n");
+				//System.out.println("Token " + token + " consumed\n");
 				
 				// Set token for use when sending a PM
 				FetchPostRunnable.accessToken = token;
