@@ -1,13 +1,8 @@
 package shin.watchdog.test;
 
-import javax.xml.bind.JAXBException;
-
-import org.junit.*;
-import org.junit.Assert.*;
+import org.junit.Test;
 
 import shin.watchdog.scheduled.GHInterestChecksRunnable;
-
-import org.junit.Test;
 
 public class TestRssFeed {
 

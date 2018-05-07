@@ -6,13 +6,11 @@ import java.util.Map;
 
 import com.google.gson.JsonObject;
 
-import org.junit.*;
-import org.junit.Assert.*;
-
-import shin.watchdog.data.SearchItem;
-import shin.watchdog.scheduled.FetchPostRunnable;
-
+import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
+
+import shin.watchdog.scheduled.FetchPostRunnable;
 
 public class TestPotentialLogic {
     JsonObject postData;
