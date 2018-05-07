@@ -25,7 +25,7 @@ import com.google.gson.JsonParser;
 public class RefreshTokenRunnable implements Runnable {
 
 	private final BlockingQueue<String> queue;
-	private HttpClient httpclient;
+	private HttpClient httpclient = HttpClients.createDefault();
 	
 	@Override
 	public void run() {
@@ -62,7 +62,6 @@ public class RefreshTokenRunnable implements Runnable {
 			HttpResponse response;
 			try {
 				//System.out.println("Refreshing access token ");
-				httpclient = HttpClients.createDefault();
 				response = httpclient.execute(httppost);
 
 				if (response.getStatusLine().getStatusCode() >= 300) {
@@ -75,7 +74,7 @@ public class RefreshTokenRunnable implements Runnable {
 								new JsonParser().parse(EntityUtils.toString(entity)).getAsJsonObject();
 						
 						String token = jsonObject.get("access_token").getAsString();
-						//System.out.println(sdf.format(resultdate) + " - New token is: " + token);
+						//System.out.println("New token is: " + token);
 						
 						// Put the found token in the queue for the consumer to set the access token
 						try {
