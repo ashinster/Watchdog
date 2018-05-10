@@ -2,20 +2,26 @@ package shin.watchdog.main;
 
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Arrays;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
+import org.apache.http.client.HttpClient;
+import org.apache.http.impl.client.HttpClients;
+
+import shin.watchdog.data.SearchItem;
 import shin.watchdog.scheduled.AccessTokenConsumer;
 import shin.watchdog.scheduled.FetchPostsTask;
 import shin.watchdog.scheduled.GHInterestChecksTask;
 import shin.watchdog.scheduled.RefreshTokenTask;
 
 public class Main {
-	public static void main (String[] args) throws UnsupportedEncodingException {
 
-		Map<String, ArrayList<String>> searchItems = new HashMap<>();
+	public static HttpClient httpclient = HttpClients.createDefault();
+
+	public static void main (String[] args) throws UnsupportedEncodingException {		
+
+		ArrayList<SearchItem> searchItems = new ArrayList<>();
 		
 		// parameterize this later from props file maybe?
 		ArrayList<String> novatouchExclude = new ArrayList<>();
@@ -36,9 +42,9 @@ public class Main {
 		holyPandasExclude.add("panda stem");
 		holyPandasExclude.add("gaf panda");
 
-		searchItems.put("Novatouch", novatouchExclude);
-		searchItems.put("Dolch Pac", dolchPacExclude);
-		searchItems.put("Panda", holyPandasExclude);
+		searchItems.add(new SearchItem("Novatouch", novatouchExclude));
+		searchItems.add(new SearchItem("Dolch Pac", dolchPacExclude));
+		searchItems.add(new SearchItem("Panda", holyPandasExclude));
 
 		BlockingQueue<String> blockingQueue = new ArrayBlockingQueue<>(1);
 		
@@ -56,7 +62,7 @@ public class Main {
 		
 		// Start a task to check new posts periodically
 		FetchPostsTask newPostsTask;
-		System.out.println("Starting Reddit new posts task: " + searchItems.keySet().toString());
+		System.out.println("Starting Reddit new posts task");
 		newPostsTask = new FetchPostsTask(searchItems);
 		newPostsTask.start();
 

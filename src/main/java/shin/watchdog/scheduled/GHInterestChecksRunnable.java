@@ -64,7 +64,7 @@ public class GHInterestChecksRunnable implements Runnable{
 	@Override
 	public void run() {
         try {
-            currentTime = new Date().getTime();
+            currentTime = System.currentTimeMillis();
 			checkForNewPosts();
 		} catch (Throwable t) {
 			System.out.println("Caught exception in FetchPostTask. StackTrace:");
@@ -105,7 +105,8 @@ public class GHInterestChecksRunnable implements Runnable{
 
         // If body isn't empty then new posts were found. Send the PM.
         if(body.length() > 0 && !body.toString().equals("") && !isDebug){
-            new SendPrivateMessage().sendPMforGH("New Posts Found on Geekhack", body.toString());
+            System.out.println("New Geekhack post found");
+            SendPrivateMessage.sendPM("New Posts Found on Geekhack", body.toString());
         } else if(isDebug){
             System.out.println(body.toString());
         }
@@ -116,9 +117,7 @@ public class GHInterestChecksRunnable implements Runnable{
 
         for(Item item : rss.channel.item){
             //https://geekhack.org/index.php?topic=95392.0
-            String topicId = item.guid.substring(37); // Only get the topic ID from the guid
-
-            newItems.put(topicId, item);
+            newItems.put(item.guid.substring(37), item); // Only get the topic ID from the guid
         }
 
         return newItems;
@@ -159,7 +158,7 @@ public class GHInterestChecksRunnable implements Runnable{
 
         if(!formattedItems.isEmpty()){
             // Append the beginning title and footer for the entries
-            formattedItems.add(0, "**New " + boardName + "**\n\n&nbsp;\n\n");
+            formattedItems.add(0, "**New " + boardName + "**\n\n");
             formattedItems.add("*****\n&nbsp;\n\n");
 
             for(String s : formattedItems){

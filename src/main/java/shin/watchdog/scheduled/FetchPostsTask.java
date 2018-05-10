@@ -8,6 +8,8 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
+import shin.watchdog.data.SearchItem;
+
 public class FetchPostsTask {
     private final ScheduledExecutorService scheduler = 
     		Executors.newScheduledThreadPool(1);
@@ -16,9 +18,9 @@ public class FetchPostsTask {
 
     Entry<String, ArrayList<String>> searchEntry;
 
-    Map<String, ArrayList<String>> searchItems;
+    ArrayList<SearchItem> searchItems;
 
-    public FetchPostsTask(Map<String, ArrayList<String>> searchItems){
+    public FetchPostsTask(ArrayList<SearchItem> searchItems){
         this.searchItems = searchItems;
     }
     
@@ -27,7 +29,7 @@ public class FetchPostsTask {
     	
     	// Check posts every x seconds
         newPostHandle =
-                scheduler.scheduleAtFixedRate(doFetchPosts, 2, 10, TimeUnit.SECONDS);
+                scheduler.scheduleAtFixedRate(doFetchPosts, 2, 5, TimeUnit.SECONDS);
     }
     
     public void stop() {

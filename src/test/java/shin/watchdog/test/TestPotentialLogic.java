@@ -6,28 +6,41 @@ import java.util.Map;
 
 import com.google.gson.JsonObject;
 
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import shin.watchdog.checkers.MechMarketChecker;
+import shin.watchdog.data.SearchItem;
+import shin.watchdog.data.Subreddit;
 import shin.watchdog.scheduled.FetchPostRunnable;
 
 public class TestPotentialLogic {
-    JsonObject postData;
     FetchPostRunnable fpr;
+    Subreddit sub;
+    
+    ArrayList<SearchItem> searchItems;
+
+    ArrayList<String> holyPandasExclude;
+    ArrayList<String> novatouchExclude;
+    ArrayList<String> dolchPacExclude;
+
+    SearchItem nt; 
+    SearchItem dp;
+    SearchItem panda;
 
     @Before
     public void setup(){
-        postData = new JsonObject();
 
-        Map<String, ArrayList<String>> searchItems = new HashMap<>();
+        searchItems = new ArrayList<>();
 		
 		// parameterize this later from props file maybe?
-		ArrayList<String> novatouchExclude = new ArrayList<>();
+		novatouchExclude = new ArrayList<>();
 		novatouchExclude.add("novatouch slider");
 		novatouchExclude.add("novatouch stems");
 
-		ArrayList<String> dolchPacExclude = new ArrayList<>();
+		dolchPacExclude = new ArrayList<>();
 		dolchPacExclude.add("dolch pac keys");
 		dolchPacExclude.add("dolch pac key set");
 		dolchPacExclude.add("dolch pac keyset");
@@ -36,16 +49,31 @@ public class TestPotentialLogic {
 		dolchPacExclude.add("dolch pac cap");
 		dolchPacExclude.add("dolch pac set");
 
-		ArrayList<String> holyPandasExclude = new ArrayList<>();
+		holyPandasExclude = new ArrayList<>();
 		holyPandasExclude.add("trash panda");
 		holyPandasExclude.add("panda stem");
-		holyPandasExclude.add("gaf panda");
-
-		searchItems.put("Novatouch", novatouchExclude);
-		searchItems.put("Dolch Pac", dolchPacExclude);
-		searchItems.put("Panda", holyPandasExclude);
+        holyPandasExclude.add("gaf panda");
         
-		searchItems.put("novatouch", new ArrayList<>());
+        nt = new SearchItem("Novatouch", novatouchExclude);
+        dp = new SearchItem("Dolch Pac", dolchPacExclude);
+        panda = new SearchItem("Panda", holyPandasExclude);
+
+		searchItems.add(nt);
+		searchItems.add(dp);
+        searchItems.add(panda);
+        
+        fpr = new FetchPostRunnable(searchItems, true);
+
+        Map<String, SearchItem> searchMap = new HashMap<>();
+		for(SearchItem sI : searchItems){
+			searchMap.put(sI.searchTerm, sI);
+		}
+
+		sub = new Subreddit("t5_2vgng", "MechMarket", searchMap, new MechMarketChecker());
+    }
+
+    @After
+    public void tearDown(){
         fpr = new FetchPostRunnable(searchItems, true);
     }
 
@@ -54,7 +82,15 @@ public class TestPotentialLogic {
         String postTitle = "[US-MD] [H] novatouch, dolch pac, invyr panda [W] paypal";
         String postDesc = "";
 
-        Assert.assertTrue(fpr.checkPotential(postTitle, postDesc));     
+        
+        sub.setSearchItem(nt.searchTerm);
+        Assert.assertTrue(sub.checkPotential(postTitle, postDesc));     
+
+        sub.setSearchItem(dp.searchTerm);
+        Assert.assertTrue(sub.checkPotential(postTitle, postDesc));     
+
+        sub.setSearchItem(panda.searchTerm);
+        Assert.assertTrue(sub.checkPotential(postTitle, postDesc));     
     }
 
     @Test
@@ -62,15 +98,18 @@ public class TestPotentialLogic {
         String postTitle = "[US-MD] [H] stuff [W] paypal";
         String postDesc = "invyr panda";
 
-        Assert.assertTrue(fpr.checkPotential(postTitle, postDesc));     
+        
+        sub.setSearchItem(panda.searchTerm);
+        Assert.assertTrue(sub.checkPotential(postTitle, postDesc));     
     }
 
     @Test
     public void testCheckPotential3(){
         String postTitle = "[US-MD] [H] stuff [W] paypal";
         String postDesc = "trash panda dolch";
-
-        Assert.assertFalse(fpr.checkPotential(postTitle, postDesc));     
+        
+        sub.setSearchItem(nt.searchTerm);
+        Assert.assertFalse(sub.checkPotential(postTitle, postDesc));     
     }
 
     @Test
@@ -78,6 +117,37 @@ public class TestPotentialLogic {
         String postTitle = "[US-MD] [H] stuff [W] dolch pac";
         String postDesc = "novatouch";
 
-        Assert.assertFalse(fpr.checkPotential(postTitle, postDesc));     
+        boolean match = false;
+
+        for(SearchItem searchItem : searchItems){
+            sub.setSearchItem(searchItem.searchTerm);
+            if(sub.checkPotential(postTitle, postDesc)){
+                match = true;
+            }
+        }
+
+        Assert.assertFalse(match);     
+    }
+
+    @Test
+    public void testCheckPotential5(){
+        String postTitle = "[US-MD] [H] stuff [W] pp";
+        String postDesc = "novatouch";
+
+        boolean match = false;
+
+        for(SearchItem searchItem : searchItems){
+            sub.setSearchItem(searchItem.searchTerm);
+            if(sub.checkPotential(postTitle, postDesc)){
+                match = true;
+            }
+        }
+
+        Assert.assertTrue(match);    
+    }
+
+    @Test
+    public void testCheckPotential6(){
+        fpr.run();
     }
 }
