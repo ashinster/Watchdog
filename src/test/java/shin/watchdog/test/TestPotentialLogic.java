@@ -1,7 +1,9 @@
 package shin.watchdog.test;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import com.google.gson.JsonObject;
@@ -12,12 +14,15 @@ import org.junit.Before;
 import org.junit.Test;
 
 import shin.watchdog.checkers.MechMarketChecker;
+import shin.watchdog.data.Board;
 import shin.watchdog.data.SearchItem;
+import shin.watchdog.data.Site;
 import shin.watchdog.data.Subreddit;
-import shin.watchdog.scheduled.FetchPostRunnable;
+import shin.watchdog.interfaces.PotentialChecker;
+import shin.watchdog.interfaces.SiteData;
+import shin.watchdog.scheduled.Processor;
 
 public class TestPotentialLogic {
-    FetchPostRunnable fpr;
     Subreddit sub;
     
     ArrayList<SearchItem> searchItems;
@@ -29,6 +34,10 @@ public class TestPotentialLogic {
     SearchItem nt; 
     SearchItem dp;
     SearchItem panda;
+
+    PotentialChecker redditChecker = new MechMarketChecker();
+
+    List<Site> sites;
 
     @Before
     public void setup(){
@@ -57,24 +66,26 @@ public class TestPotentialLogic {
         nt = new SearchItem("Novatouch", novatouchExclude);
         dp = new SearchItem("Dolch Pac", dolchPacExclude);
         panda = new SearchItem("Panda", holyPandasExclude);
+        SearchItem si = new SearchItem("paypal", null);
 
 		searchItems.add(nt);
 		searchItems.add(dp);
         searchItems.add(panda);
+        searchItems.add(si);
         
-        fpr = new FetchPostRunnable(searchItems, true);
-
-        Map<String, SearchItem> searchMap = new HashMap<>();
-		for(SearchItem sI : searchItems){
-			searchMap.put(sI.searchTerm, sI);
-		}
-
-		sub = new Subreddit("t5_2vgng", "MechMarket", searchMap, new MechMarketChecker());
+        sites = new ArrayList<>();
+		Site mechmarket = new Subreddit("t5_2vgng", "MechMarket", searchItems, new MechMarketChecker(true), true);
+		Site geekhackIc = new Board("132", "Interest Checks",true);
+		Site geekhackGb = new Board("70", "Group Buys",true);
+		
+		sites.add(mechmarket);
+		sites.add(geekhackIc);
+		sites.add(geekhackGb);
     }
 
     @After
     public void tearDown(){
-        fpr = new FetchPostRunnable(searchItems, true);
+
     }
 
     @Test
@@ -83,14 +94,14 @@ public class TestPotentialLogic {
         String postDesc = "";
 
         
-        sub.setSearchItem(nt.searchTerm);
-        Assert.assertTrue(sub.checkPotential(postTitle, postDesc));     
+        redditChecker.setSearch(nt);
+        Assert.assertTrue(redditChecker.checkPotential(postTitle, postDesc));     
 
-        sub.setSearchItem(dp.searchTerm);
-        Assert.assertTrue(sub.checkPotential(postTitle, postDesc));     
+        redditChecker.setSearch(dp);
+        Assert.assertTrue(redditChecker.checkPotential(postTitle, postDesc));     
 
-        sub.setSearchItem(panda.searchTerm);
-        Assert.assertTrue(sub.checkPotential(postTitle, postDesc));     
+        redditChecker.setSearch(panda);
+        Assert.assertTrue(redditChecker.checkPotential(postTitle, postDesc));     
     }
 
     @Test
@@ -99,8 +110,8 @@ public class TestPotentialLogic {
         String postDesc = "invyr panda";
 
         
-        sub.setSearchItem(panda.searchTerm);
-        Assert.assertTrue(sub.checkPotential(postTitle, postDesc));     
+        redditChecker.setSearch(panda);
+        Assert.assertTrue(redditChecker.checkPotential(postTitle, postDesc));     
     }
 
     @Test
@@ -108,8 +119,8 @@ public class TestPotentialLogic {
         String postTitle = "[US-MD] [H] stuff [W] paypal";
         String postDesc = "trash panda dolch";
         
-        sub.setSearchItem(nt.searchTerm);
-        Assert.assertFalse(sub.checkPotential(postTitle, postDesc));     
+        redditChecker.setSearch(nt);
+        Assert.assertFalse(redditChecker.checkPotential(postTitle, postDesc));     
     }
 
     @Test
@@ -120,8 +131,8 @@ public class TestPotentialLogic {
         boolean match = false;
 
         for(SearchItem searchItem : searchItems){
-            sub.setSearchItem(searchItem.searchTerm);
-            if(sub.checkPotential(postTitle, postDesc)){
+            redditChecker.setSearch(searchItem);
+            if(redditChecker.checkPotential(postTitle, postDesc)){
                 match = true;
             }
         }
@@ -137,8 +148,8 @@ public class TestPotentialLogic {
         boolean match = false;
 
         for(SearchItem searchItem : searchItems){
-            sub.setSearchItem(searchItem.searchTerm);
-            if(sub.checkPotential(postTitle, postDesc)){
+            redditChecker.setSearch(searchItem);
+            if(redditChecker.checkPotential(postTitle, postDesc)){
                 match = true;
             }
         }
@@ -148,6 +159,11 @@ public class TestPotentialLogic {
 
     @Test
     public void testCheckPotential6(){
-        fpr.run();
+
+
+		for(Site site : sites){
+			System.out.println("Starting " + site.getName() + " Process");
+			new Processor(site).run();
+		}
     }
 }

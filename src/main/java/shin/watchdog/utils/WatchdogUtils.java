@@ -68,7 +68,7 @@ public class WatchdogUtils {
 			}
             String url = "https://www.reddit.com/message/compose?" + params;
 
-            link.append("[Send PM for All Items](" + url + ")");
+            link.append("[Send PM for All Items](" + url + ")\n\n");
         }
 
         return link.toString();

@@ -1,20 +1,12 @@
 package shin.watchdog.data;
 
-import java.util.ArrayList;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import shin.watchdog.utils.WatchdogUtils;
+import java.util.List;
 
 public class SearchItem{
     public String searchTerm;
-    public ArrayList<String> excludedTerms;
-
-    public SearchItem(){
-
-    }
-
-    public SearchItem(String searchTerm, ArrayList<String> excludedTerms){
+    public List<String> excludedTerms;
+    
+    public SearchItem(String searchTerm, List<String> excludedTerms){
         this.searchTerm = searchTerm;
         this.excludedTerms = excludedTerms;
     }

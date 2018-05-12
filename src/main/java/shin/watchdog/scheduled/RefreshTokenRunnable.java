@@ -9,38 +9,37 @@ import java.util.Date;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.NameValuePair;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.message.BasicNameValuePair;
-import org.apache.http.util.EntityUtils;
-
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.util.EntityUtils;
+
+import shin.watchdog.data.Site;
+
 public class RefreshTokenRunnable implements Runnable {
 
-	private final BlockingQueue<String> queue;
-	private HttpClient httpclient = HttpClients.createDefault();
+	private static BlockingQueue<String> queue;
 	
 	@Override
 	public void run() {
 		try{
-			refreshToken();
+			refreshToken(false);
 		}catch(Throwable t) {
 			System.out.println("Caught exception in ScheduledExecutorService. StackTrace:\n" + t.getStackTrace());
 		}
 	}
 	
 	public RefreshTokenRunnable(BlockingQueue<String> queue) {
-		this.queue = queue;
+		RefreshTokenRunnable.queue = queue;
 	}
 
-	private void refreshToken() {
+	public static String refreshToken(boolean isRetry) {
 
 		String tokenURL = "https://www.reddit.com/api/v1/access_token";
 		HttpPost httppost = new HttpPost(tokenURL);
@@ -62,7 +61,7 @@ public class RefreshTokenRunnable implements Runnable {
 			HttpResponse response;
 			try {
 				//System.out.println("Refreshing access token ");
-				response = httpclient.execute(httppost);
+				response = Site.httpclient.execute(httppost);
 
 				if (response.getStatusLine().getStatusCode() >= 300) {
 					System.out.println("Error refreshing token: " + response.getStatusLine() + "\n");
@@ -74,14 +73,10 @@ public class RefreshTokenRunnable implements Runnable {
 								new JsonParser().parse(EntityUtils.toString(entity)).getAsJsonObject();
 						
 						String token = jsonObject.get("access_token").getAsString();
-						//System.out.println("New token is: " + token);
-						
-						// Put the found token in the queue for the consumer to set the access token
-						try {
-							queue.put(token);
-						} catch (InterruptedException e) {
-							e.printStackTrace();
-						}
+
+						EntityUtils.consume(entity);
+
+						return token;
 					}
 				}
 			} catch (IOException e) {
@@ -92,5 +87,13 @@ public class RefreshTokenRunnable implements Runnable {
 		} catch (UnsupportedEncodingException e) {
 			e.printStackTrace();
 		}
+		
+		if(!isRetry){
+			System.out.println("Retrying getting access token");
+			return refreshToken(true);
+		}
+
+		System.out.println("Retry failed for getting access token");
+		return null;
 	}
 }

@@ -3,7 +3,8 @@ package shin.watchdog.interfaces;
 import shin.watchdog.data.SearchItem;
 
 public interface PotentialChecker {
-    boolean checkPotential(String title, String description);
-    boolean isValidTitle(String title);
+    boolean check();
     void setSearch(SearchItem searchItem);
+    void setPost(SiteData post);
+    boolean checkPotential(String... dataToSearch);
 }

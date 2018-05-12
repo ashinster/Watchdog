@@ -2,24 +2,18 @@ package shin.watchdog.main;
 
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
+import java.util.List;
 
-import org.apache.http.client.HttpClient;
-import org.apache.http.impl.client.HttpClients;
-
+import shin.watchdog.checkers.MechMarketChecker;
+import shin.watchdog.data.Board;
 import shin.watchdog.data.SearchItem;
-import shin.watchdog.scheduled.AccessTokenConsumer;
-import shin.watchdog.scheduled.FetchPostsTask;
-import shin.watchdog.scheduled.GHInterestChecksTask;
-import shin.watchdog.scheduled.RefreshTokenTask;
+import shin.watchdog.data.Site;
+import shin.watchdog.data.Subreddit;
+import shin.watchdog.scheduled.PostProcessorTask;
 
 public class Main {
 
-	public static HttpClient httpclient = HttpClients.createDefault();
-
-	public static void main (String[] args) throws UnsupportedEncodingException {		
+	public static void main (String[] args) throws UnsupportedEncodingException {	
 
 		ArrayList<SearchItem> searchItems = new ArrayList<>();
 		
@@ -46,58 +40,20 @@ public class Main {
 		searchItems.add(new SearchItem("Dolch Pac", dolchPacExclude));
 		searchItems.add(new SearchItem("Panda", holyPandasExclude));
 
-		BlockingQueue<String> blockingQueue = new ArrayBlockingQueue<>(1);
-		
-		RefreshTokenTask refreshTokenTask = new RefreshTokenTask();
-		
-		// Thread which consumes newly generated access tokens that RefreshTokenTask generates.
-		// Sets the access token for use when sending PMs
-		System.out.println("Starting token consumer thread");
-		Thread tokenConsumer = new Thread(new AccessTokenConsumer(blockingQueue));
-		tokenConsumer.start();
-		
-		// Pass the blocking queue which will be used for this and the consumer
-		System.out.println("Starting refresh token task");
-		refreshTokenTask.start(blockingQueue);
-		
-		// Start a task to check new posts periodically
-		FetchPostsTask newPostsTask;
-		System.out.println("Starting Reddit new posts task");
-		newPostsTask = new FetchPostsTask(searchItems);
-		newPostsTask.start();
 
-		GHInterestChecksTask interestChecks;
-		System.out.println("Starting Geekhack new topics task");
-		interestChecks = new GHInterestChecksTask();
-		interestChecks.start();
+		List<Site> sites = new ArrayList<>();
+		Site mechmarket = new Subreddit("t5_2vgng", "MechMarket", searchItems, new MechMarketChecker(), 5);
+		Site geekhackIc = new Board("132", "Interest Checks", 60);
+		Site geekhackGb = new Board("70", "Group Buys", 60);
+		
+		sites.add(mechmarket);
+		sites.add(geekhackIc);
+		sites.add(geekhackGb);
 
-		System.out.println();
-
-//		
-//		
-//        BufferedReader br= new BufferedReader(new InputStreamReader(System.in));
-//        while(true){
-//            System.out.println("Press enter to exit\n");  
-//            String s = null;
-//            try {
-//                s = br.readLine();
-//            } catch (IOException e) {
-//                e.printStackTrace();
-//            }
-//            if(s.length() == 0){
-//                System.out.println("Exiting...");
-//                
-//                System.out.println("Stopping token consumer");
-//                tokenConsumer.interrupt();
-//                
-//                System.out.println("Stopping new post fetching");
-//                newPostsTask.stop();
-//                
-//                System.out.println("Stopping refreshing token");
-//                refreshTokenTask.stop();
-//                
-//                System.exit(0);
-//            }
-//        }
+		PostProcessorTask postProcessorTask = new PostProcessorTask();
+		for(Site site : sites){
+			System.out.println("Starting " + site.getName() + " Process");
+			postProcessorTask.start(site);
+		}
 	}
 }
