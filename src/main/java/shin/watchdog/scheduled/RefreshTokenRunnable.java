@@ -19,24 +19,22 @@ import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import shin.watchdog.data.Site;
+import shin.watchdog.main.Main;
 
 public class RefreshTokenRunnable implements Runnable {
 
-	private static BlockingQueue<String> queue;
+	final static Logger logger = LoggerFactory.getLogger(RefreshTokenRunnable.class);
 	
 	@Override
 	public void run() {
 		try{
 			refreshToken(false);
 		}catch(Throwable t) {
-			System.out.println("Caught exception in ScheduledExecutorService. StackTrace:\n" + t.getStackTrace());
+			logger.error("Caught an unknown exception while retrieving refresh token", t);
 		}
-	}
-	
-	public RefreshTokenRunnable(BlockingQueue<String> queue) {
-		RefreshTokenRunnable.queue = queue;
 	}
 
 	public static String refreshToken(boolean isRetry) {
@@ -60,11 +58,10 @@ public class RefreshTokenRunnable implements Runnable {
 			// Execute and get the response.
 			HttpResponse response;
 			try {
-				//System.out.println("Refreshing access token ");
-				response = Site.httpclient.execute(httppost);
+				response = Main.httpclient.execute(httppost);
 
 				if (response.getStatusLine().getStatusCode() >= 300) {
-					System.out.println("Error refreshing token: " + response.getStatusLine() + "\n");
+					logger.error("Error refreshing token {}", response.getStatusLine());
 				} else {
 					HttpEntity entity = response.getEntity();
 					if (entity != null) {
@@ -80,20 +77,18 @@ public class RefreshTokenRunnable implements Runnable {
 					}
 				}
 			} catch (IOException e) {
-			    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MMM-dd EEE HH:mm:ss");
-			    Date resultdate = new Date(System.currentTimeMillis());
-				System.out.println(sdf.format(resultdate) + " - Error refreshing token: " + e.getMessage());
+				logger.error("IO error refreshing token", e);
 			}
 		} catch (UnsupportedEncodingException e) {
-			e.printStackTrace();
+			logger.error("Unsupported encoding exception", e);
 		}
 		
 		if(!isRetry){
-			System.out.println("Retrying getting access token");
+			logger.warn("Retrying getting access token");
 			return refreshToken(true);
 		}
 
-		System.out.println("Retry failed for getting access token");
+		logger.error("Retry failed for getting access token");
 		return null;
 	}
 }

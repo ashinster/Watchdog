@@ -4,7 +4,12 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class WatchdogUtils {
+
+	final static Logger logger = LoggerFactory.getLogger(WatchdogUtils.class);	
 
     public static boolean wantsMoney(String text) {
         boolean isWantsMoney = false;
@@ -43,33 +48,29 @@ public class WatchdogUtils {
         
         StringBuilder link = new StringBuilder();
 
-        for(String match : matchedTerms){
-            String pmBody = "Hey! I'll buy your " + match + " if it's still available! Let me know, thanks!";
-            String params = "";
-            try {
+        try{
+            for(String match : matchedTerms){
+                String pmBody = "Hey! I'll buy your " + match + " if it's still available! Let me know, thanks!";
+                String params = "";
                 params = String.format("to=%s&subject=%s&message=%s", URLEncoder.encode(author, "UTF-8"), URLEncoder.encode(match, "UTF-8"), URLEncoder.encode(pmBody, "UTF-8"));			
-			} catch (UnsupportedEncodingException e) {
-				e.printStackTrace();
-			}
-            String url = "https://www.reddit.com/message/compose?" + params;
-
-            link.append("[Send PM for the " + match + "](" + url + ")\n\n");
-        }
-
-        if(matchedTerms.size() > 1){
-            String multipleMatches = commaSeparateList(matchedTerms); 
-
-            String pmBody = "Hey! I'll buy your " + multipleMatches + " if they're still available! Let me know, thanks!";
-            String params = String.format("to=%s&subject=%s&message=%s", author, multipleMatches, pmBody);
-			try {
-				params = URLEncoder.encode(params, "UTF-8");
-			} catch (UnsupportedEncodingException e) {
-				e.printStackTrace();
-			}
-            String url = "https://www.reddit.com/message/compose?" + params;
-
-            link.append("[Send PM for All Items](" + url + ")\n\n");
-        }
+                String url = "https://www.reddit.com/message/compose?" + params;
+    
+                link.append("[Send PM for the " + match + "](" + url + ")\n\n");
+            }
+    
+            if(matchedTerms.size() > 1){
+                String multipleMatches = commaSeparateList(matchedTerms); 
+    
+                String pmBody = "Hey! I'll buy your " + multipleMatches + " if they're still available! Let me know, thanks!";
+                String params = "";
+                params = String.format("to=%s&subject=%s&message=%s", URLEncoder.encode(author, "UTF-8"), URLEncoder.encode(multipleMatches, "UTF-8"), URLEncoder.encode(pmBody, "UTF-8"));
+                String url = "https://www.reddit.com/message/compose?" + params;
+    
+                link.append("[Send PM for All Items](" + url + ")\n\n");
+            }
+        } catch (UnsupportedEncodingException e) {
+            logger.error("Unsupported encoding exception when encoding values", e);
+		}
 
         return link.toString();
     }

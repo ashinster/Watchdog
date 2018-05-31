@@ -11,6 +11,11 @@ public class Post implements SiteData{
     public Data data;
 
     public class Data {
+
+        @SerializedName("link_flair_text")
+        @Expose
+        public String link_flair_text;
+
         @SerializedName("selftext")
         @Expose
         public String selftext;
@@ -34,6 +39,15 @@ public class Post implements SiteData{
         @SerializedName("created_utc")
         @Expose
         public long createdUtc;
-    }
 
+        @SerializedName("crosspost_parent_list")
+        @Expose
+        public Crossposts[] crosspost_parent_list;
+
+        public class Crossposts{
+            @SerializedName("selftext")
+            @Expose
+            public String selftext;
+        }
+    }
 }

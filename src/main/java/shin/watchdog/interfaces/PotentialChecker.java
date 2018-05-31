@@ -1,10 +1,10 @@
 package shin.watchdog.interfaces;
 
+import java.util.List;
+
 import shin.watchdog.data.SearchItem;
 
 public interface PotentialChecker {
-    boolean check();
-    void setSearch(SearchItem searchItem);
-    void setPost(SiteData post);
-    boolean checkPotential(String... dataToSearch);
+    boolean checkPotential(String title, String description, SearchItem searchItems);
+    List<SiteData> getPotentialPosts(List<SiteData> newPosts, List<SearchItem> searchItems);
 }

@@ -1,16 +1,13 @@
 package shin.watchdog.scheduled;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import shin.watchdog.data.PotentialPost;
-import shin.watchdog.data.SearchItem;
 import shin.watchdog.data.Site;
-import shin.watchdog.interfaces.PotentialChecker;
-import shin.watchdog.interfaces.SiteData;
 
 public class Processor implements Runnable {
+
+    final static Logger logger = LoggerFactory.getLogger(Processor.class);
 
     private Site site;
 
@@ -21,48 +18,10 @@ public class Processor implements Runnable {
 	@Override
 	public void run() {
 		try{
-            List<SiteData> potentialPosts = doSearch(site);
-
-            if(!potentialPosts.isEmpty()){
-                site.sendMessage(potentialPosts);
-            }
-            
+            site.process();       
+            return;     
         } catch (Throwable t) {
-			t.printStackTrace();
+            logger.error("Unknown error while executing thread: " + site.getName(), t);
 		}
     }
-
-	private List<SiteData> doSearch(Site site) {
-        List<SiteData> potentialPosts = new ArrayList<>();
-
-        // Get all new posts
-        LinkedHashMap<String, SiteData> newItems = site.makeCall();
-
-        if(!newItems.isEmpty()){
-            PotentialChecker checker = site.getChecker();
-            if(checker != null){
-                for(SiteData post : newItems.values()){
-                    PotentialPost matchedPost = new PotentialPost(post);
-    
-                    checker.setPost(post);
-
-                    for(SearchItem searchItem : site.getSearchItems()){
-                        checker.setSearch(searchItem);
-                        if(checker.check()){
-                            matchedPost.addMatchedTerm(searchItem.searchTerm);
-                        }
-                    }
-
-                    if(!matchedPost.getMatchedTerms().isEmpty()){
-                        potentialPosts.add(matchedPost);
-                    }
-                }
-            } else {
-                potentialPosts = new ArrayList<>(newItems.values());
-            }
-        }
-        
-        return potentialPosts;
-	}
-
 }

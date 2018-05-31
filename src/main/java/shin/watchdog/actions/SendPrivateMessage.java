@@ -2,98 +2,112 @@ package shin.watchdog.actions;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.text.SimpleDateFormat;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
+import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import shin.watchdog.data.Site;
 import shin.watchdog.main.Main;
 import shin.watchdog.scheduled.RefreshTokenRunnable;
 
 public class SendPrivateMessage {
+	
+	final static Logger logger = LoggerFactory.getLogger(SendPrivateMessage.class);	
 
-	public static void sendPM(String subject, String body){
-		sendPMHelper(subject, body, false);
+	public boolean sendPM(String subject, String body, List<String> users){
+		return sendPMHelper(subject, body, users, false);
 	}
 
-	private static boolean sendPMHelper(String subject, String content, boolean isRetry){
-
-		boolean isSuccess = false;
+	private boolean sendPMHelper(String subject, String content, List<String> users, boolean isRetry){
+		boolean allMessagesSent = true;
 
 		String token = RefreshTokenRunnable.refreshToken(false);
 
-		if(token != null){
-			String tokenURL = "https://oauth.reddit.com/api/compose";
-			HttpPost httppost = new HttpPost(tokenURL);
+		if(token == null){
+			logger.error("Refresh token was null, PM not sent. Sorry bud");
+		} else {
+			HttpPost httppost = new HttpPost("https://oauth.reddit.com/api/compose");
 
 			httppost.setHeader("Authorization", "Bearer " + token);
 			httppost.setHeader("User-Agent", "WatchdogSA/0.1 by TimidSA");	
 
-			ArrayList<String> sendToUsers = new ArrayList<>();
-			sendToUsers.add("timidsa");
-			// Can add more users
+			logger.info("Using access token: {}", token);
+			logger.info("Subject: {}", subject);
 
-			// Can support sending to multiple users
-			for(String user : sendToUsers){
-				// Request parameters and other properties.
-				List<NameValuePair> params = new ArrayList<NameValuePair>();
-				params.add(new BasicNameValuePair("api_type", "json"));
-				params.add(new BasicNameValuePair("subject", subject));
-				params.add(new BasicNameValuePair("text", content));	
+			// Request parameters and other properties.
+			List<NameValuePair> params = new ArrayList<NameValuePair>();
+			params.add(new BasicNameValuePair("api_type", "json"));
+			params.add(new BasicNameValuePair("subject", subject));
+			params.add(new BasicNameValuePair("text", content));	
+
+			for(String user : users){
 				params.add(new BasicNameValuePair("to", user));
+				
+				httppost.setEntity(new UrlEncodedFormEntity(params, StandardCharsets.UTF_8));
 
-				// Execute and get the response.
-				HttpResponse response = null;
-				try {
-					httppost.setEntity(new UrlEncodedFormEntity(params, "UTF-8"));
+				// Make the call
+				if(!makeRequest(httppost, user)){
+					logger.warn("Retrying sending PM...");
 
-					System.out.println("Using access token: " + token);
-					System.out.println("Sending PM...");
-
-					response = Site.httpclient.execute(httppost);
-					
-					if(response != null){
-						// Get timestamp of when PM was sent
-						SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MMM-dd EEE HH:mm:ss");
-						Date resultdate = new Date(System.currentTimeMillis());
-
-						System.out.println(response.getStatusLine().getStatusCode());
-						if (response.getStatusLine().getStatusCode() >= 300) {
-							System.out.println("Error sending PM: " + response.getStatusLine() + "\n");
-						} else {
-							isSuccess = true;
-							System.out.println("PM sent at " + sdf.format(resultdate));
-							System.out.println();
-						}
-
-						EntityUtils.consume(response.getEntity());
-
-						return isSuccess;
+					// Retry the request
+					if(!makeRequest(httppost, user)){
+						logger.error("Sending PM failed for user [{}] ;[", user);
+						allMessagesSent = false;
 					}
-				} catch (UnsupportedEncodingException e) {
-					e.printStackTrace();
-				} catch (IOException e) {
-					e.printStackTrace();
+				}
+
+				// Remove the 'to' param which is the last element so we can set the next user
+				params.remove(params.size()-1);
+			}
+		}
+
+		return allMessagesSent;
+	}
+
+	private boolean makeRequest(HttpPost postRequest, String user){
+		boolean isSuccess = false;
+
+		// Execute and get the response.
+		HttpResponse response = null;
+		HttpEntity entity = null;
+		try {
+			logger.info("Sending PM to: {}", user);
+			response = Main.httpclient.execute(postRequest);
+			entity = response.getEntity();
+			
+			if(response != null){
+				logger.info("Status code: {}", response.getStatusLine().getStatusCode());
+
+				if (response.getStatusLine().getStatusCode() >= 300) {
+					logger.error("Error sending PM: {}", response.getStatusLine());
+				} else {
+					isSuccess = true;
+					logger.info("PM successfully sent!");
+					logger.info("Response: {}", EntityUtils.toString(response.getEntity()));
 				}
 			}
-		} else {
-			System.out.println("Refresh token was null, PM not sent.");
+		} catch (IOException e) {
+			logger.error("IO Error when attempting to send PM", e);
+		} finally{
+			if(entity != null){
+				try {
+					EntityUtils.consume(entity);
+				} catch (IOException e) {
+					logger.error("IO Error trying to consume entity", e);
+				}
+			}
 		}
 
-		if(!isRetry){
-			System.out.println("Retrying sending PM...");
-			return sendPMHelper(subject, content, true);
-		} else { 
-			System.out.println("Send PM retry failed.");
-			return isSuccess;
-		}
+		return isSuccess;
 	}
 }

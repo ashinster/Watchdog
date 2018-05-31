@@ -35,7 +35,7 @@ public class TestPotentialLogic {
     SearchItem dp;
     SearchItem panda;
 
-    PotentialChecker redditChecker = new MechMarketChecker();
+    MechMarketChecker redditChecker = new MechMarketChecker();
 
     List<Site> sites;
 
@@ -72,15 +72,6 @@ public class TestPotentialLogic {
 		searchItems.add(dp);
         searchItems.add(panda);
         searchItems.add(si);
-        
-        sites = new ArrayList<>();
-		Site mechmarket = new Subreddit("t5_2vgng", "MechMarket", searchItems, new MechMarketChecker(true), true);
-		Site geekhackIc = new Board("132", "Interest Checks",true);
-		Site geekhackGb = new Board("70", "Group Buys",true);
-		
-		sites.add(mechmarket);
-		sites.add(geekhackIc);
-		sites.add(geekhackGb);
     }
 
     @After
@@ -93,15 +84,11 @@ public class TestPotentialLogic {
         String postTitle = "[US-MD] [H] novatouch, dolch pac, invyr panda [W] paypal";
         String postDesc = "";
 
-        
-        redditChecker.setSearch(nt);
-        Assert.assertTrue(redditChecker.checkPotential(postTitle, postDesc));     
+        Assert.assertTrue(redditChecker.checkPotential(postTitle, postDesc, nt));     
 
-        redditChecker.setSearch(dp);
-        Assert.assertTrue(redditChecker.checkPotential(postTitle, postDesc));     
+        Assert.assertTrue(redditChecker.checkPotential(postTitle, postDesc, dp));
 
-        redditChecker.setSearch(panda);
-        Assert.assertTrue(redditChecker.checkPotential(postTitle, postDesc));     
+        Assert.assertTrue(redditChecker.checkPotential(postTitle, postDesc, panda));     
     }
 
     @Test
@@ -109,9 +96,7 @@ public class TestPotentialLogic {
         String postTitle = "[US-MD] [H] stuff [W] paypal";
         String postDesc = "invyr panda";
 
-        
-        redditChecker.setSearch(panda);
-        Assert.assertTrue(redditChecker.checkPotential(postTitle, postDesc));     
+        Assert.assertTrue(redditChecker.checkPotential(postTitle, postDesc, panda));     
     }
 
     @Test
@@ -119,8 +104,7 @@ public class TestPotentialLogic {
         String postTitle = "[US-MD] [H] stuff [W] paypal";
         String postDesc = "trash panda dolch";
         
-        redditChecker.setSearch(nt);
-        Assert.assertFalse(redditChecker.checkPotential(postTitle, postDesc));     
+        Assert.assertFalse(redditChecker.checkPotential(postTitle, postDesc, nt));     
     }
 
     @Test
@@ -131,8 +115,7 @@ public class TestPotentialLogic {
         boolean match = false;
 
         for(SearchItem searchItem : searchItems){
-            redditChecker.setSearch(searchItem);
-            if(redditChecker.checkPotential(postTitle, postDesc)){
+            if(redditChecker.checkPotential(postTitle, postDesc, searchItem)){
                 match = true;
             }
         }
@@ -148,22 +131,41 @@ public class TestPotentialLogic {
         boolean match = false;
 
         for(SearchItem searchItem : searchItems){
-            redditChecker.setSearch(searchItem);
-            if(redditChecker.checkPotential(postTitle, postDesc)){
+            if(redditChecker.checkPotential(postTitle, postDesc, searchItem)){
                 match = true;
             }
         }
+
+
 
         Assert.assertTrue(match);    
     }
 
     @Test
     public void testCheckPotential6(){
+        sites = new ArrayList<>();
 
+		Map<String, List<SearchItem>> searchItemsForUsers = new HashMap<>();
+		searchItemsForUsers.put("timidsa", searchItems);
+        
+		Site mechmarket = new Subreddit("t5_2vgng", "MechMarket", searchItemsForUsers, new MechMarketChecker(true), true);
+		Site geekhackIc = new Board("132", "Interest Checks", Arrays.asList("timidsa"), true);
+		Site geekhackGb = new Board("70", "Group Buys", Arrays.asList("timidsa"), true);
+		
+		sites.add(mechmarket);
+		sites.add(geekhackIc);
+		sites.add(geekhackGb);
 
 		for(Site site : sites){
-			System.out.println("Starting " + site.getName() + " Process");
 			new Processor(site).run();
 		}
+    }
+
+    
+    @Test
+    public void testCheckPotential7(){
+        String postTitle = "[gb] asdkjfhaslfhjdasd asdsd";
+        
+        Assert.assertFalse(redditChecker.isListing(postTitle));    
     }
 }
