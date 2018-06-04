@@ -5,11 +5,14 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.springframework.stereotype.Service;
+
 import shin.watchdog.actions.SendPrivateMessage;
 import shin.watchdog.data.MechmarketPost;
 import shin.watchdog.interfaces.SiteData;
 import shin.watchdog.utils.WatchdogUtils;
 
+@Service
 public class RedditMessageService implements MessageService {
 
     private boolean isDebug;
@@ -30,7 +33,6 @@ public class RedditMessageService implements MessageService {
             MechmarketPost post = (MechmarketPost) siteData;
 
             matchesForAllPosts.addAll(post.getMatches());
-
             
             String selftext = post.data.selftext;
             if(selftext.isEmpty() && post.data.crosspost_parent_list != null && post.data.crosspost_parent_list.length >= 1){

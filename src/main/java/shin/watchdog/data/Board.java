@@ -125,7 +125,7 @@ public class Board extends Site{
         } catch (SocketTimeoutException e){
             //logger.error("SocketTimeoutException getting new {} - {}", this.name, e.getMessage());
         } catch (IOException e) {
-            //logger.error("IO Exception getting new " + this.name, e);
+            logger.error("IO Exception getting new " + this.name, e);
         } catch (JAXBException e) {
             logger.error("Error Unmarshalling rss feed for " + this.name, e);
         } catch (Throwable e) {

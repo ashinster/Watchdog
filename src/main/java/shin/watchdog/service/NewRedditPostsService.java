@@ -21,16 +21,20 @@ import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.stereotype.Service;
 
 import shin.watchdog.data.Post;
 import shin.watchdog.data.RedditSearch;
 import shin.watchdog.interfaces.SiteData;
 
+@Service
 public class NewRedditPostsService implements RedditService{
 
 	final static Logger logger = LoggerFactory.getLogger(NewRedditPostsService.class);
 
-    private static final int TIMEOUT = 4;
+    private static final int TIMEOUT = 3;
 
 	private static RequestConfig config = RequestConfig.custom()
         .setConnectTimeout(1 * 1000)
@@ -50,23 +54,22 @@ public class NewRedditPostsService implements RedditService{
 	
 	// Time values
 	private long catchUpTime;
-	private long interval;
 
 	private boolean isDebug;
 
-    public NewRedditPostsService(long interval){
+	public NewRedditPostsService(){
 		this.sdfLocal = new SimpleDateFormat("EEE, dd MMM yyyy h:mm:ss a z");
 		this.sdfGmt = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z");
 		this.gson = new GsonBuilder().create();
-		this.interval = interval;
-    }
+	}
 
-    public NewRedditPostsService(long interval, boolean isDebug){
-		this(interval);
+    public NewRedditPostsService(boolean isDebug){
+		this();
         this.isDebug = isDebug;
     }
 
-	public List<SiteData> makeCall(String subreddit) {
+	public List<SiteData> makeCall(String subreddit, long interval) {
+		//logger.info("making call");
 		List<SiteData> newPosts = new ArrayList<>();
         RedditSearch redditSearch = null;
 
@@ -113,23 +116,23 @@ public class NewRedditPostsService implements RedditService{
 		}
 
 		if(redditSearch != null){
-			newPosts.addAll(getNewPosts(redditSearch, startTime, this.catchUpTime));
+			newPosts.addAll(getNewPosts(redditSearch, startTime, this.catchUpTime, interval));
 			this.catchUpTime = 0;
 		} else {
-			this.catchUpTime += this.interval*1000;
+			this.catchUpTime += interval*1000;
 		}
         
         return newPosts;
 	}
 
-	private List<SiteData> getNewPosts(RedditSearch searchResult, long startTime, long catchUp) {
+	private List<SiteData> getNewPosts(RedditSearch searchResult, long startTime, long catchUp, long interval) {
         List<SiteData> newPosts = new ArrayList<>();
 
         for(Post post : searchResult.data.children){
             /* This is to handle posts that get deleted right after they're created, 
             or if older posts somehow creep back into the fetched recent posts. 
             If it's an old post, ignore it. Note that this also applies for the first run. */
-            if(Math.abs(startTime - post.data.createdUtc*1000) <= (this.interval*1000 + catchUp) || isDebug){
+            if(Math.abs(startTime - post.data.createdUtc*1000) <= (interval*1000 + catchUp) || isDebug){
                 newPosts.add(post);
             }
         }   

@@ -2,6 +2,7 @@ package shin.watchdog.utils;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -11,16 +12,21 @@ public class WatchdogUtils {
 
 	final static Logger logger = LoggerFactory.getLogger(WatchdogUtils.class);	
 
-    public static boolean wantsMoney(String text) {
-        boolean isWantsMoney = false;
-		if (text.contains("paypal") || text.contains("pp") || text.contains("venmo")
-				|| text.contains("cash") || text.contains("money") || text.contains("google")
-				|| text.contains("money") || text.contains("$")) {
-			isWantsMoney = true;
-		}
-		return isWantsMoney;
+    public static List<String> lowercaseList(List<String> list){
+        List<String> lowercaseList = new ArrayList<>();
+        for(String s : list){
+            lowercaseList.add(s.toLowerCase());
+        }
+        return lowercaseList;
     }
 
+    public static List<String> uppercaseList(List<String> list){
+        List<String> uppercaseList = new ArrayList<>();
+        for(String s : list){
+            uppercaseList.add(s.toUpperCase());
+        }
+        return uppercaseList;
+    }
 
     private static String commaSeparateList(List<String> list){
         
