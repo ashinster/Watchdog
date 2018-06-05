@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.net.SocketTimeoutException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 import com.google.gson.Gson;
@@ -21,8 +20,6 @@ import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Service;
 
 import shin.watchdog.data.Post;
@@ -30,11 +27,14 @@ import shin.watchdog.data.RedditSearch;
 import shin.watchdog.interfaces.SiteData;
 
 @Service
-public class NewRedditPostsService implements RedditService{
+public class NewRedditPostsService {
 
 	final static Logger logger = LoggerFactory.getLogger(NewRedditPostsService.class);
 
-    private static final int TIMEOUT = 3;
+	private static final int TIMEOUT = 3;
+	
+	// Date of the previous post in seconds in UTC
+	private long previousPostDate;
 
 	private static RequestConfig config = RequestConfig.custom()
         .setConnectTimeout(1 * 1000)
@@ -47,19 +47,11 @@ public class NewRedditPostsService implements RedditService{
         .setConnectionManager(new PoolingHttpClientConnectionManager())
         .build();
 
-	// Formatting onjects
-    protected SimpleDateFormat sdfLocal;
-    protected SimpleDateFormat sdfGmt;
 	private Gson gson;
-	
-	// Time values
-	private long catchUpTime;
 
 	private boolean isDebug;
 
 	public NewRedditPostsService(){
-		this.sdfLocal = new SimpleDateFormat("EEE, dd MMM yyyy h:mm:ss a z");
-		this.sdfGmt = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z");
 		this.gson = new GsonBuilder().create();
 	}
 
@@ -74,16 +66,14 @@ public class NewRedditPostsService implements RedditService{
         RedditSearch redditSearch = null;
 
 		String tokenURL = 
-			"https://www.reddit.com/r/" + subreddit + "/new.json" + (isDebug ? "?limit=1" : "?limit=5");
+			"https://www.reddit.com/r/" + subreddit + "/new.json" + (isDebug ? "?limit=5" : "?limit=10");
 
 		HttpGet httpget = new HttpGet(tokenURL);
 		httpget.setHeader("User-Agent", "WatchdogSA/0.1 by TimidSA");
 
 		// Execute and get the response.
-		long startTime = 0;
 		HttpEntity entity = null;
 		try {
-			startTime = System.currentTimeMillis();
 			HttpResponse response = NewRedditPostsService.httpclient.execute(httpget);
 
 			entity = response.getEntity();
@@ -94,7 +84,7 @@ public class NewRedditPostsService implements RedditService{
 				if (entity != null) {
                     redditSearch = gson.fromJson(EntityUtils.toString(entity), RedditSearch.class);
 				} else {
-					throw new Exception("Entity from Reddit search GET request was null");
+					throw new Exception("Entity from Reddit search GET request was empty");
 				}
 			}
 		} catch (SocketTimeoutException e){
@@ -115,27 +105,28 @@ public class NewRedditPostsService implements RedditService{
 			}
 		}
 
-		if(redditSearch != null){
-			newPosts.addAll(getNewPosts(redditSearch, startTime, this.catchUpTime, interval));
-			this.catchUpTime = 0;
-		} else {
-			this.catchUpTime += interval*1000;
+		if(redditSearch != null && !redditSearch.data.children.isEmpty()){
+			newPosts.addAll(getNewPosts(redditSearch));
 		}
-        
+
         return newPosts;
 	}
 
-	private List<SiteData> getNewPosts(RedditSearch searchResult, long startTime, long catchUp, long interval) {
-        List<SiteData> newPosts = new ArrayList<>();
+	private List<SiteData> getNewPosts(RedditSearch searchResult) {
+		List<SiteData> newPosts = new ArrayList<>();
 
-        for(Post post : searchResult.data.children){
-            /* This is to handle posts that get deleted right after they're created, 
-            or if older posts somehow creep back into the fetched recent posts. 
-            If it's an old post, ignore it. Note that this also applies for the first run. */
-            if(Math.abs(startTime - post.data.createdUtc*1000) <= (interval*1000 + catchUp) || isDebug){
-                newPosts.add(post);
-            }
-        }   
+		if(previousPostDate != 0){
+			for(Post post : searchResult.data.children){
+				// When posts are deleted, older posts creep back up
+				// We compare the post date here with the latest post we have in our previous list of posts
+				// This to make sure we aren't doing anything on a post we've seen before
+				if(post.data.createdUtc > previousPostDate || isDebug){
+					newPosts.add(post);
+				}
+			}   
+		}
+
+		this.previousPostDate = searchResult.data.children.get(0).data.createdUtc;
 
 		return newPosts;
 	}
