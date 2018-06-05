@@ -6,24 +6,17 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.google.gson.JsonObject;
-
-import org.junit.After;
+import org.apache.commons.lang3.arch.Processor;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
 import shin.watchdog.checkers.MechMarketChecker;
-import shin.watchdog.data.Board;
 import shin.watchdog.data.SearchItem;
-import shin.watchdog.data.Site;
-import shin.watchdog.data.Subreddit;
-import shin.watchdog.interfaces.PotentialChecker;
-import shin.watchdog.interfaces.SiteData;
-import shin.watchdog.scheduled.Processor;
+import shin.watchdog.site.Board;
+import shin.watchdog.site.Site;
 
 public class TestPotentialLogic {
-    Subreddit sub;
     
     ArrayList<SearchItem> searchItems;
 
@@ -159,7 +152,7 @@ public class TestPotentialLogic {
 		sites.add(geekhackGb);
 
 		for(Site site : sites){
-			new Processor(site).run();
+            site.process();
 		}
     }
 

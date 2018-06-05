@@ -7,10 +7,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 
-import shin.watchdog.data.Board;
-import shin.watchdog.data.Subreddit;
+import shin.watchdog.site.Board;
 import shin.watchdog.processor.MechmarketProcessor;
-import shin.watchdog.service.NewRedditPostsService;
 
 @Configuration
 @EnableScheduling

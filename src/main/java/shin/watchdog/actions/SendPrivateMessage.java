@@ -1,8 +1,6 @@
 package shin.watchdog.actions;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
@@ -18,7 +16,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import shin.watchdog.main.Main;
-import shin.watchdog.scheduled.RefreshTokenRunnable;
+import shin.watchdog.service.RefreshTokenService;
 
 public class SendPrivateMessage {
 	
@@ -31,7 +29,7 @@ public class SendPrivateMessage {
 	private boolean sendPMHelper(String subject, String content, List<String> users, boolean isRetry){
 		boolean allMessagesSent = true;
 
-		String token = RefreshTokenRunnable.refreshToken(false);
+		String token = RefreshTokenService.refreshToken(false);
 
 		if(token == null){
 			logger.error("Refresh token was null, PM not sent. Sorry bud");

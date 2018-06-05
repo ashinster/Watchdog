@@ -1,24 +1,12 @@
 package shin.watchdog.main;
 
 import java.io.UnsupportedEncodingException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import shin.watchdog.checkers.MechMarketChecker;
-import shin.watchdog.data.Board;
-import shin.watchdog.data.SearchItem;
-import shin.watchdog.data.Site;
-import shin.watchdog.data.Subreddit;
-import shin.watchdog.scheduled.PostProcessorTask;
 
 public class Main {
     final static Logger logger = LoggerFactory.getLogger(Main.class);
