@@ -1,14 +1,18 @@
 package shin.watchdog.main;
 
+import java.util.UUID;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 
-import shin.watchdog.site.Board;
+import shin.watchdog.processor.GeekhackProcessor;
 import shin.watchdog.processor.MechmarketProcessor;
+import shin.watchdog.service.RefreshTokenService;
 
 @Configuration
 @EnableScheduling
@@ -16,26 +20,37 @@ public class Watchdog{
     private static final Logger log = LoggerFactory.getLogger(Watchdog.class);
 
     @Autowired
-    private Board interestChecks;
+    private GeekhackProcessor interestChecksProcessor;
 
     @Autowired
-    private Board groupBuys;
+    private GeekhackProcessor groupBuysProcessor;
 
     @Autowired
     private MechmarketProcessor mechmarket;
 
+    @Scheduled(fixedRate = 1000 * 60 * 30)
+    public void refreshToken(){
+        RefreshTokenService.refreshToken();
+    }
+
     @Scheduled(cron = "0 * * * * *")
     public void getInterestChecks(){
-        interestChecks.process();
+        MDC.put("uuid", UUID.randomUUID().toString());
+        interestChecksProcessor.process();
+        MDC.clear();
     }
 
-    @Scheduled(cron = "0 * * * * *")
+    @Scheduled(cron = "30 * * * * *")
     public void getGroupBuys(){
-        groupBuys.process();
+        MDC.put("uuid", UUID.randomUUID().toString());
+        groupBuysProcessor.process();
+        MDC.clear();
     }
 
-    @Scheduled(fixedRate = 5000)
+    @Scheduled(cron = "0/5 * * * * *")
     public void getMechmarketPosts(){
+        MDC.put("uuid", UUID.randomUUID().toString());
         mechmarket.process();
+        MDC.clear();
     }
 }

@@ -3,8 +3,12 @@ watchdog:
     user: timidsa
     ignore: 
       - EZEALLINH
+      - scud80
+      - maxfHS
+      - expensive-hobbies
     special: 
       - eat_the_food
+      - TImidSA
     search:
       - term: Novatouch
         exclude:
@@ -17,6 +21,7 @@ watchdog:
           - gaf panda
           - stash panda
           - hash panda
+          - holy panda shishi
       - term: Dolch Pac
         exclude:
           - dolch pac keys

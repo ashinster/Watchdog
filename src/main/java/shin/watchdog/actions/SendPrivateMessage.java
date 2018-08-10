@@ -22,16 +22,20 @@ public class SendPrivateMessage {
 	
 	final static Logger logger = LoggerFactory.getLogger(SendPrivateMessage.class);	
 
-	public boolean sendPM(String subject, String body, List<String> users){
-		return sendPMHelper(subject, body, users, false);
+	public static boolean sendPM(String subject, String body, String user){
+		return sendPMHelper(subject, body, user, false);
 	}
 
-	private boolean sendPMHelper(String subject, String content, List<String> users, boolean isRetry){
+	private static boolean sendPMHelper(String subject, String content, String user, boolean isRetry){
 		boolean allMessagesSent = true;
 
-		String token = RefreshTokenService.refreshToken(false);
+		String token = RefreshTokenService.refreshToken;
+
+		// If refresh token is null then try to get the token again before sending a pm
+		token = (token == null) ? RefreshTokenService.refreshToken() : token;
 
 		if(token == null){
+			allMessagesSent = false;
 			logger.error("Refresh token was null, PM not sent. Sorry bud");
 		} else {
 			HttpPost httppost = new HttpPost("https://oauth.reddit.com/api/compose");
@@ -47,32 +51,25 @@ public class SendPrivateMessage {
 			params.add(new BasicNameValuePair("api_type", "json"));
 			params.add(new BasicNameValuePair("subject", subject));
 			params.add(new BasicNameValuePair("text", content));	
+			params.add(new BasicNameValuePair("to", user));
+			
+			httppost.setEntity(new UrlEncodedFormEntity(params, StandardCharsets.UTF_8));
 
-			for(String user : users){
-				params.add(new BasicNameValuePair("to", user));
-				
-				httppost.setEntity(new UrlEncodedFormEntity(params, StandardCharsets.UTF_8));
+			// Make the call
+			if(!makeRequest(httppost, user)){
+				logger.warn("Retrying sending PM...");
 
-				// Make the call
+				// Retry the request
 				if(!makeRequest(httppost, user)){
-					logger.warn("Retrying sending PM...");
-
-					// Retry the request
-					if(!makeRequest(httppost, user)){
-						logger.error("Sending PM failed for user [{}] ;[", user);
-						allMessagesSent = false;
-					}
+					logger.error("Sending PM failed for user [{}] ;[", user);
 				}
-
-				// Remove the 'to' param which is the last element so we can set the next user
-				params.remove(params.size()-1);
 			}
 		}
 
 		return allMessagesSent;
 	}
 
-	private boolean makeRequest(HttpPost postRequest, String user){
+	private static boolean makeRequest(HttpPost postRequest, String user){
 		boolean isSuccess = false;
 
 		// Execute and get the response.

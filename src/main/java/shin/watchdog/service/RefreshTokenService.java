@@ -21,20 +21,23 @@ import org.slf4j.LoggerFactory;
 
 import shin.watchdog.main.Main;
 
-public class RefreshTokenService implements Runnable {
+public class RefreshTokenService {
 
 	final static Logger logger = LoggerFactory.getLogger(RefreshTokenService.class);
-	
-	@Override
-	public void run() {
-		try{
-			refreshToken(false);
-		}catch(Throwable t) {
-			logger.error("Caught an unknown exception while retrieving refresh token", t);
-		}
+
+	public static String refreshToken;
+
+	public RefreshTokenService(){
+
 	}
 
-	public static String refreshToken(boolean isRetry) {
+	public static String refreshToken(){
+		refreshToken = refreshTokenHelper(false);
+		return refreshToken;
+	}
+
+	private static String refreshTokenHelper(boolean isRetry) {
+		String token = null;
 
 		String tokenURL = "https://www.reddit.com/api/v1/access_token";
 		HttpPost httppost = new HttpPost(tokenURL);
@@ -66,11 +69,9 @@ public class RefreshTokenService implements Runnable {
 						JsonObject jsonObject = 
 								new JsonParser().parse(EntityUtils.toString(entity)).getAsJsonObject();
 						
-						String token = jsonObject.get("access_token").getAsString();
+						token = jsonObject.get("access_token").getAsString();
 
 						EntityUtils.consume(entity);
-
-						return token;
 					}
 				}
 			} catch (IOException e) {
@@ -80,12 +81,15 @@ public class RefreshTokenService implements Runnable {
 			logger.error("Unsupported encoding exception", e);
 		}
 		
-		if(!isRetry){
-			logger.warn("Retrying getting access token");
-			return refreshToken(true);
+		if(token == null){
+			if(isRetry){
+				logger.error("Failed to refresh token");
+			} else {
+				logger.warn("Retrying getting access token");
+				token = refreshTokenHelper(true);
+			}
 		}
 
-		logger.error("Retry failed for getting access token");
-		return null;
+		return token;
 	}
 }

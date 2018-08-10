@@ -2,9 +2,18 @@ watchdog:
   mechmarket:
     interval: 5
     users:
+      - sendto: H3NT4I
+        special:
+          - Eat_the_food
       - sendto: timidsa
         ignore:
           - ezeallinh
+          - scud80
+          - legit309
+          - LightningXI
+          - expensive-hobbies
+          - ggZyg
+          - crusader_alex
         special: 
           - Eat_the_food
           - TimidSA
@@ -14,6 +23,7 @@ watchdog:
           - IC
           - Vendor
         search:
+          - term: solarized dark
           - term: Novatouch
             exclude:
               - novatouch slider
@@ -25,6 +35,9 @@ watchdog:
               - gaf panda
               - stash panda
               - hash panda
+              - unholy panda
+              - cashed panda
+              - putrid panda
           - term: Dolch Pac
             exclude:
               - dolch pac keys
@@ -34,3 +47,8 @@ watchdog:
               - dolch pac key cap
               - dolch pac cap
               - dolch pac set
+  geekhack:
+    interval: 60
+    users:
+      - TimidSA
+      - H3NT4I

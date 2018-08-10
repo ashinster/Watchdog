@@ -2,64 +2,64 @@ package shin.watchdog.service;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
+import java.util.TimeZone;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
 
 import shin.watchdog.actions.SendPrivateMessage;
-import shin.watchdog.data.Item;
-import shin.watchdog.interfaces.SiteData;
+import shin.watchdog.data.Entry;
 
-public class GeekhackMessageService implements MessageService{
+@Service
+public class GeekhackMessageService{
 
     final static Logger logger = LoggerFactory.getLogger(GeekhackMessageService.class);
-    
-    private boolean isDebug;
-	private SimpleDateFormat sdfLocal;
-	private SimpleDateFormat sdfGmt;
-	private String boardName;
 
-	public GeekhackMessageService(String boardName){
-        this.boardName = boardName;
+    @Value("${isDebug}")
+    private boolean isDebug;
+
+	private SimpleDateFormat sdfLocal;
+
+	public GeekhackMessageService(){
 		this.sdfLocal = new SimpleDateFormat("EEE, dd MMM yyyy h:mm:ss a z");
-		this.sdfGmt = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z");
     }
 
-    public GeekhackMessageService(String boardName, boolean isDebug){
-        this(boardName);
+    public GeekhackMessageService(boolean isDebug){
+        this();
         this.isDebug = isDebug;
     }
 
-    @Override
-    public boolean sendMessage(List<SiteData> potentialPosts, List<String> users){
+    public boolean sendMessage(String boardName, List<Entry> potentialPosts, String user){
         ArrayList<String> formattedItems = new ArrayList<>();
 
         StringBuilder entries = new StringBuilder();
 
-        for(SiteData siteData : potentialPosts){
-            Item post = (Item) siteData;
-            StringBuilder entry = new StringBuilder();
-            try {
-                String localDate = sdfLocal.format(sdfGmt.parse(post.pubDate));
-                entry.append(post.title).append("\n\n");
-                entry.append(localDate).append("\n\n");
-                entry.append(post.guid).append("\n\n");
-                entry.append("*****\n\n");
+        for(Entry siteData : potentialPosts){
+            Entry post = (Entry) siteData;
+            String localDate = sdfLocal.format(Instant.parse(post.getPublished()).toEpochMilli());
 
-                // Add this entry
-                formattedItems.add(entry.toString());
+            StringBuilder message = new StringBuilder();
+            message.append("\"" + post.getTitle() + "\" by " + post.getAuthor().getName()).append("\n\n");
+            message.append("Posted on " + localDate).append("\n\n");
+            message.append(post.getId()).append("\n\n");
+            message.append("> " + post.getSummary().getValue()).append("\n\n");
+            message.append("***\n\n");
 
-            } catch (ParseException e) {
-                logger.error("Could not parse Geekhack pubDate", e);
-            }
+            // Add this entry
+            formattedItems.add(message.toString());
         }                
 
         if(!formattedItems.isEmpty()){
             // Append the beginning title and footer for the entries
-            formattedItems.add(0, "**New " + this.boardName + "**\n\n");
-            formattedItems.add("*****\n&nbsp;\n\n");
+            formattedItems.add(0, "**New " + boardName + "**\n\n");
+            formattedItems.add("***\n*This message was created at " + sdfLocal.format(new Date(System.currentTimeMillis())) + "*");
 
             for(String s : formattedItems){
                 entries.append(s);
@@ -67,9 +67,9 @@ public class GeekhackMessageService implements MessageService{
         }
 
         if(!isDebug){
-            return new SendPrivateMessage().sendPM("New " + this.boardName + " Found on Geekhack", entries.toString(), users);
+            return SendPrivateMessage.sendPM("New " + boardName + " Found on Geekhack", entries.toString(), user);
         } else {
-            System.out.println("New " + this.boardName + " Found on Geekhack\n" + entries.toString());
+            logger.info("New " + boardName + " Found on Geekhack\n" + entries.toString());
             return false;
         }
     }

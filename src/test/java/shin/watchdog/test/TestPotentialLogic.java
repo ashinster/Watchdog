@@ -1,19 +1,14 @@
 package shin.watchdog.test;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
-import org.apache.commons.lang3.arch.Processor;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
 import shin.watchdog.checkers.MechMarketChecker;
 import shin.watchdog.data.SearchItem;
-import shin.watchdog.site.Board;
 import shin.watchdog.site.Site;
 
 public class TestPotentialLogic {
@@ -137,25 +132,6 @@ public class TestPotentialLogic {
 
         Assert.assertTrue(match);    
     }
-
-    @Test
-    public void testCheckPotential6(){
-        sites = new ArrayList<>();
-
-		Map<String, List<SearchItem>> searchItemsForUsers = new HashMap<>();
-		searchItemsForUsers.put("timidsa", searchItems);
-        
-		Site geekhackIc = new Board("132", "Interest Checks", Arrays.asList("timidsa"), true);
-		Site geekhackGb = new Board("70", "Group Buys", Arrays.asList("timidsa"), true);
-		
-		sites.add(geekhackIc);
-		sites.add(geekhackGb);
-
-		for(Site site : sites){
-            site.process();
-		}
-    }
-
     
     @Test
     public void testCheckPotential7(){

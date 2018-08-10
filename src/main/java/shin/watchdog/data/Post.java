@@ -3,9 +3,7 @@ package shin.watchdog.data;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
-import shin.watchdog.interfaces.SiteData;
-
-public class Post implements SiteData{
+public class Post {
 
     @SerializedName("data")
     public Data data;

@@ -1,6 +1,7 @@
 package shin.watchdog.checkers;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -12,7 +13,6 @@ import shin.watchdog.data.MechmarketPost;
 import shin.watchdog.data.Post;
 import shin.watchdog.data.SearchItem;
 import shin.watchdog.data.WatchdogUser;
-import shin.watchdog.interfaces.SiteData;
 
 public class MechMarketChecker{
 	final static Logger logger = LoggerFactory.getLogger(MechMarketChecker.class);
@@ -35,34 +35,36 @@ public class MechMarketChecker{
 		this.isDebug = isDebug;
 	}
 	
-	public List<SiteData> getPotentialPosts(List<SiteData> newPosts, WatchdogUser user) {
-		List<SiteData> potentialPosts = new ArrayList<>();//mechmarketChecker.getPotentialPosts(newItems, this.searchItems);
+	public List<MechmarketPost> getPotentialPosts(List<Post> newPosts, WatchdogUser user) {
+		List<MechmarketPost> potentialPosts = new ArrayList<>();//mechmarketChecker.getPotentialPosts(newItems, this.searchItems);
 
-		for(SiteData siteData : newPosts){
-			MechmarketPost post = new MechmarketPost((Post) siteData);
+		for(Post post : newPosts){
+			MechmarketPost mmPost = new MechmarketPost(post);
 
-			if(!user.getIgnore().contains(post.data.author.toLowerCase())){
-				if(user.getSpecial().contains(post.data.author.toLowerCase())) {
-					post.addTerm(post.data.author);
-					potentialPosts.add(post);
+			if(!user.getIgnore().contains(mmPost.data.author.toLowerCase())){
+
+				if(user.getSpecial().contains(mmPost.data.author.toLowerCase())) {
+					mmPost.addTerm(post.data.author);
 				} 
 				else if(isListing(post.data.title)){
-					post.markAsListing();
+					mmPost.markAsListing();
 					for(SearchItem searchItem : user.getSearch()){
 						if(checkPotential(post.data.title, post.data.selftext, searchItem) || isDebug){
-							post.addTerm(searchItem.getTerm());
+							mmPost.addTerm(searchItem.getTerm());
 						}
-					}
-					if(post.hasMatch()){
-						potentialPosts.add(post);
 					}
 				} 
 				else {
-					String postType = getListingType(post.data.title);
+					String postType = getListingType(mmPost.data.title);
 					if(user.getListingtypes().contains(postType)){
-						post.addTerm(postType);
-						potentialPosts.add(post);
+						mmPost.addTerm(postType);
 					}
+				}
+
+				
+				if(mmPost.hasMatch()){
+					logger.info("New {} post found: \"{}\" by {}", Arrays.toString(mmPost.getMatches().toArray()), post.data.title, post.data.author);
+					potentialPosts.add(mmPost);
 				}
 			}
 		}
