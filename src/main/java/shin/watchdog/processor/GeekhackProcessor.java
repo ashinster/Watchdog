@@ -40,11 +40,11 @@ public class GeekhackProcessor {
 
     private Checker checker;
 
-    public GeekhackProcessor(String rssUrl, String icChannelUrl, String gbChannelUrl, String roleId, Checker checker) {
+    public GeekhackProcessor(String rssUrl, String boardName, String channelUrl, String roleId, Checker checker) {
         this.previousPubDate = Instant.now().toEpochMilli();
         this.rssUrl = rssUrl;
-        this.boardName = icChannelUrl;
-        this.channelUrl = gbChannelUrl;
+        this.boardName = boardName;
+        this.channelUrl = channelUrl;
         this.roleId = roleId;
         this.checker = checker;
     }
