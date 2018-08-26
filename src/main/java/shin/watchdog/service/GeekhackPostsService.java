@@ -49,14 +49,10 @@ public class GeekhackPostsService{
         this.jaxbUnmarshaller = jaxbContext.createUnmarshaller();
     }
 
-    public Feed makeCall(String boardId, String boardName) {
+    public Feed makeCall(String feedUrl, String boardName) {
         Feed rssFeed = null;
 
-        String limit = isDebug ? "2" : "3";
-        String tokenURL 
-            = "https://geekhack.org/index.php?action=.xml;sa=news;type=atom;limit=" + limit + ";board=" + boardId;
-
-		HttpGet httpget = new HttpGet(tokenURL);
+		HttpGet httpget = new HttpGet(feedUrl);
 
         // Execute and get the response.
         HttpEntity entity = null;

@@ -13,16 +13,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 
 import shin.watchdog.config.GeekhackConfig;
+import shin.watchdog.data.AlertList;
 import shin.watchdog.data.Entry;
 import shin.watchdog.data.Feed;
+import shin.watchdog.data.GeekhackUser;
+import shin.watchdog.interfaces.Checker;
 import shin.watchdog.service.GeekhackMessageService;
 import shin.watchdog.service.GeekhackPostsService;
 
 public class GeekhackProcessor{
     final static Logger logger = LoggerFactory.getLogger(GeekhackProcessor.class);
-
-    @Value("${isDebug}")
-    private boolean isDebug;
 
     @Autowired
     private GeekhackConfig config;
@@ -34,52 +34,42 @@ public class GeekhackProcessor{
     private GeekhackMessageService geekhackMessageService;
 
     private String boardName;
-    private String boardId;
 
-	private long previousPubDate;
+    private long previousPubDate;
+
+	private String roleId;
+    private String channelUrl;
     
-    public GeekhackProcessor(String boardId, String boardName){
-        this.boardId = boardId;
+    private String rssUrl;
+
+	private Checker checker;
+    
+    public GeekhackProcessor(String rssUrl, String boardName, String channelUrl, String roleId, Checker checker){
+        this.rssUrl = rssUrl;
         this.boardName = boardName;
         this.previousPubDate = Instant.now().toEpochMilli();
+        this.channelUrl = channelUrl;
+        this.roleId = roleId;
+        this.checker = checker;
     }
 
     public void process(){
-        //logger.info("PREVIOUS PUB DATE {}", new SimpleDateFormat("EEE, dd MMM yyyy h:mm:ss a z").format(new Date(this.previousPubDate)));
+        // Get the feed via rss/atom
+        Feed rss = postsService.makeCall(this.rssUrl, this.boardName);
 
-        Feed rss = postsService.makeCall(this.boardId, this.boardName);
+        // Parse the posts from the feed we just retrieved
+        AlertList alertList = checker.check(rss, config, previousPubDate, boardName);
 
-        if(rss != null && rss.getEntry() != null && !rss.getEntry().isEmpty()){
-            List<Entry> newPosts = getNewPosts(rss.getEntry());
+        if(alertList.getNewPostsList() != null){
+            // Send message for the new posts
+            geekhackMessageService.sendMessage(
+                boardName, 
+                alertList.getNewPostsList(), 
+                alertList.getUsersToPingList(), 
+                channelUrl, roleId);
 
-            if(!newPosts.isEmpty()){
-                // alert each subscribed user on the new posts
-                for (String user : this.config.getUsers()){
-                    geekhackMessageService.sendMessage(this.boardName, newPosts, user);
-                }
-
-                this.previousPubDate = Instant.parse(newPosts.get(0).getPublished()).toEpochMilli();
-            }
+            // Set the previous publish date to the most recent post in the list
+            previousPubDate = Instant.parse(alertList.getNewPostsList().get(0).getPublished()).toEpochMilli();
         }
-    }
-
-    /**
-     * Filters out posts from the current feed that are newer than the previous feed's most recent post
-     * @param fullList The list of post entries from the feed
-     * @returns List of posts that are newer than the previous feed's most recent post
-     */
-    public List<Entry> getNewPosts(List<Entry> fullList){
-        List<Entry> newPosts = new ArrayList<>();
-        
-        for(Entry item : fullList) {
-            if(Instant.parse(item.getPublished()).toEpochMilli() > this.previousPubDate || isDebug) {
-                if(!item.getTitle().trim().startsWith("Re:")){
-                    logger.info("New {} found: \"{}\" ({})" , this.boardName, item.getTitle(), item.getId());
-                    newPosts.add(item);
-                }
-            }
-        }
-
-        return newPosts;
     }
 }

@@ -5,6 +5,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.oracle.tools.packager.Log;
+
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
@@ -16,67 +18,49 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import shin.watchdog.main.Main;
-import shin.watchdog.service.RefreshTokenService;
 
 public class SendPrivateMessage {
 	
 	final static Logger logger = LoggerFactory.getLogger(SendPrivateMessage.class);	
 
-	public static boolean sendPM(String subject, String body, String user){
-		return sendPMHelper(subject, body, user, false);
+	public static boolean sendPM(String subject, String body, String webhookUrl){
+		return sendPMHelper(subject, body, webhookUrl, false);
 	}
 
-	private static boolean sendPMHelper(String subject, String content, String user, boolean isRetry){
+	private static boolean sendPMHelper(String subject, String content, String webhookUrl, boolean isRetry){
 		boolean allMessagesSent = true;
 
-		String token = RefreshTokenService.refreshToken;
+		HttpPost httppost = new HttpPost(webhookUrl);
 
-		// If refresh token is null then try to get the token again before sending a pm
-		token = (token == null) ? RefreshTokenService.refreshToken() : token;
+		logger.info("Sending request to: {}", webhookUrl);
 
-		if(token == null){
-			allMessagesSent = false;
-			logger.error("Refresh token was null, PM not sent. Sorry bud");
-		} else {
-			HttpPost httppost = new HttpPost("https://oauth.reddit.com/api/compose");
+		// Request parameters and other properties.
+		List<NameValuePair> params = new ArrayList<NameValuePair>();
+		params.add(new BasicNameValuePair("content", content));
+		
+		httppost.setEntity(new UrlEncodedFormEntity(params, StandardCharsets.UTF_8));
 
-			httppost.setHeader("Authorization", "Bearer " + token);
-			httppost.setHeader("User-Agent", "WatchdogSA/0.1 by TimidSA");	
+		// Make the call
+		if(!makeRequest(httppost)){
+			logger.warn("Retrying sending alert...");
 
-			logger.info("Using access token: {}", token);
-			logger.info("Subject: {}", subject);
-
-			// Request parameters and other properties.
-			List<NameValuePair> params = new ArrayList<NameValuePair>();
-			params.add(new BasicNameValuePair("api_type", "json"));
-			params.add(new BasicNameValuePair("subject", subject));
-			params.add(new BasicNameValuePair("text", content));	
-			params.add(new BasicNameValuePair("to", user));
-			
-			httppost.setEntity(new UrlEncodedFormEntity(params, StandardCharsets.UTF_8));
-
-			// Make the call
-			if(!makeRequest(httppost, user)){
-				logger.warn("Retrying sending PM...");
-
-				// Retry the request
-				if(!makeRequest(httppost, user)){
-					logger.error("Sending PM failed for user [{}] ;[", user);
-				}
+			// Retry the request
+			if(!makeRequest(httppost)){
+				logger.error("Retry sending alert failed.");
 			}
 		}
 
 		return allMessagesSent;
 	}
 
-	private static boolean makeRequest(HttpPost postRequest, String user){
+	private static boolean makeRequest(HttpPost postRequest){
 		boolean isSuccess = false;
 
 		// Execute and get the response.
 		HttpResponse response = null;
 		HttpEntity entity = null;
 		try {
-			logger.info("Sending PM to: {}", user);
+			logger.info("Sending alert..");
 			response = Main.httpclient.execute(postRequest);
 			entity = response.getEntity();
 			
@@ -87,8 +71,7 @@ public class SendPrivateMessage {
 					logger.error("Error sending PM: {}", response.getStatusLine());
 				} else {
 					isSuccess = true;
-					logger.info("PM successfully sent!");
-					logger.info("Response: {}", EntityUtils.toString(response.getEntity()));
+					logger.info("Alert successfully sent!");
 				}
 			}
 		} catch (IOException e) {

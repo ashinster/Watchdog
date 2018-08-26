@@ -11,7 +11,7 @@ import shin.watchdog.service.RefreshTokenService;
 public class WatchdogApplication{
 
     public static void main(String[] args) throws Exception {
-		RefreshTokenService.refreshToken();
+		//RefreshTokenService.refreshToken();
 		SpringApplication.run(WatchdogApplication.class, args);
 	}
 }

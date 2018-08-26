@@ -15,7 +15,7 @@ public class TestRssFeed {
         try {
             GeekhackPostsService service = new GeekhackPostsService();
             
-            Feed feed = service.makeCall("132", "Interest Checks");
+            Feed feed = service.makeCall("https://geekhack.org/index.php?action=.xml;sa=news;type=atom;limit=3;board=132", "Interest Checks");
 
             Assert.assertEquals("geekhack - Interest Checks", feed.getTitle());
 		} catch (JAXBException e) {

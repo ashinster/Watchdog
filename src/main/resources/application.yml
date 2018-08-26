@@ -48,7 +48,33 @@ watchdog:
               - dolch pac cap
               - dolch pac set
   geekhack:
-    interval: 60
     users:
-      - TimidSA
-      - H3NT4I
+      - username: bisoromi
+        id: <@177965123288170496>
+        topics:
+          - jane;yuktsi
+          - kyuu;quantastrophus
+          - h87a;hineybush
+      - username: H3NT4I
+        id: <@296815003153989644>
+        topics:
+          - jane;yuktsi
+          - kyuu;quantastrophus
+          - h87a;hineybush
+      - username: r3msky
+        id: <@307980991178342410>
+        topics:
+          - jane;yuktsi
+      - username: tr4656
+        id: <@90276021617590272>
+        topics:
+          - jane;yuktsi
+    updatedTopics:
+      "95054":
+        topicName: TGR Alice
+        topicAuthor: yuktsi
+        subscribers:
+          tr4656: <@90276021617590272>
+          bisoromi: <@177965123288170496>
+          r3msky: <@307980991178342410>
+          h3nt4i: <@296815003153989644>

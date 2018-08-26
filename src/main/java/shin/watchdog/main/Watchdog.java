@@ -26,12 +26,15 @@ public class Watchdog{
     private GeekhackProcessor groupBuysProcessor;
 
     @Autowired
-    private MechmarketProcessor mechmarket;
+    private GeekhackProcessor updatedThreadsProcessor;
 
-    @Scheduled(fixedRate = 1000 * 60 * 30)
-    public void refreshToken(){
-        RefreshTokenService.refreshToken();
-    }
+    // @Autowired
+    // private MechmarketProcessor mechmarket;
+
+    // @Scheduled(fixedRate = 1000 * 60 * 30)
+    // public void refreshToken(){
+    //     RefreshTokenService.refreshToken();
+    // }
 
     @Scheduled(cron = "0 * * * * *")
     public void getInterestChecks(){
@@ -40,17 +43,24 @@ public class Watchdog{
         MDC.clear();
     }
 
-    @Scheduled(cron = "30 * * * * *")
+    @Scheduled(cron = "0 * * * * *")
     public void getGroupBuys(){
         MDC.put("uuid", UUID.randomUUID().toString());
         groupBuysProcessor.process();
         MDC.clear();
     }
 
-    @Scheduled(cron = "0/5 * * * * *")
-    public void getMechmarketPosts(){
+    @Scheduled(cron = "0 * * * * *")
+    public void getUpdatesForThread(){
         MDC.put("uuid", UUID.randomUUID().toString());
-        mechmarket.process();
+        updatedThreadsProcessor.process();
         MDC.clear();
     }
+
+    // @Scheduled(cron = "0/5 * * * * *")
+    // public void getMechmarketPosts(){
+    //     MDC.put("uuid", UUID.randomUUID().toString());
+    //     mechmarket.process();
+    //     MDC.clear();
+    // }
 }

@@ -1,14 +1,33 @@
 <configuration>
+    <appender name="consoleAppender" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <charset>UTF-8</charset>
+            <Pattern>%d{ISO8601} %-5level [%thread] %X{uuid} %logger{36} - %msg%n</Pattern>
+        </encoder>
+    </appender>
 
-  <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
-    <!-- encoders are assigned the type
-         ch.qos.logback.classic.encoder.PatternLayoutEncoder by default -->
-    <encoder>
-      <pattern>%d{ISO8601} %-5level [%thread] %X{uuid} %logger{36} - %msg%n</pattern>
-    </encoder>
-  </appender>
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>/home/ec2-user/watchdog/logs/watchdog.log</file>
 
-  <root level="INFO">
-    <appender-ref ref="STDOUT" />
-  </root>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <!-- daily rollover. Make sure the path matches the one in the file element or else
+             the rollover logs are placed in the working directory. -->
+            <fileNamePattern>/home/ec2-user/watchdog/logs/watchdog_%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+
+            <!-- each file should be at most 100MB, keep 60 days worth of history, but at most 20GB -->
+            <maxFileSize>100MB</maxFileSize>    
+            <maxHistory>60</maxHistory>
+            <totalSizeCap>2GB</totalSizeCap>
+        </rollingPolicy>
+
+        <encoder>
+            <charset>UTF-8</charset>
+            <pattern>%d{ISO8601} %-5level [%thread] %X{uuid} %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <root level="INFO">
+        <appender-ref ref="consoleAppender" />
+        <appender-ref ref="FILE"/>
+    </root>
 </configuration>
