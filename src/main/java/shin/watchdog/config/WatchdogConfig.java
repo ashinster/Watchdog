@@ -3,7 +3,6 @@ package shin.watchdog.config;
 import javax.xml.bind.JAXBException;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -16,6 +15,9 @@ import shin.watchdog.processor.GeekhackProcessor;
 public class WatchdogConfig{
 
     @Autowired
+    protected GeekhackConfig config;
+
+    @Autowired
     private Checker newTopicChecker;
 
     @Autowired
@@ -23,20 +25,20 @@ public class WatchdogConfig{
 
     @Bean
     public Checker newTopicChecker(){
-        return new GHNewTopicCheck();
+        return new GHNewTopicCheck(config.getNewTopics());
     }
 
     @Bean
     public Checker updatedTopicChecker(){
-        return new GHUpdatedTopicCheck();
+        return new GHUpdatedTopicCheck(config.getUpdatedTopics());
     }
 
     @Bean
     public GeekhackProcessor interestChecksProcessor() throws JAXBException{
         return new GeekhackProcessor(
-            "https://geekhack.org/index.php?action=.xml;sa=news;type=atom;limit=3;board=132", 
-            "Interest Checks", 
+            "https://geekhack.org/index.php?action=.xml;sa=news;type=atom;limit=3;board=132",
             "https://discordapp.com/api/webhooks/477261547517902848/eq1z6lMMo4-xdz5WAw3xK9DXKFWBUjPwunbeCHwJbRBYNVToqUailAVEB4-08yc8FyHh", 
+            "https://discordapp.com/api/webhooks/477261735271858176/atBPCQzWMAj_k6PVrJTMqggwaoEnQ7Hz4HlHjyp6hmfGrdIKgNEbbD9hMrmUms3Y5hVq",
             "<@&477264441319096321>",
             newTopicChecker
         );

@@ -2,8 +2,6 @@ package shin.watchdog.main;
 
 import java.util.UUID;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
@@ -11,13 +9,11 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 
 import shin.watchdog.processor.GeekhackProcessor;
-import shin.watchdog.processor.MechmarketProcessor;
-import shin.watchdog.service.RefreshTokenService;
 
 @Configuration
 @EnableScheduling
 public class Watchdog{
-    private static final Logger log = LoggerFactory.getLogger(Watchdog.class);
+    //private static final Logger log = LoggerFactory.getLogger(Watchdog.class);
 
     @Autowired
     private GeekhackProcessor interestChecksProcessor;

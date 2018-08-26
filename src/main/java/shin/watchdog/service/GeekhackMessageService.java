@@ -1,13 +1,9 @@
 package shin.watchdog.service;
 
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
-import java.util.Locale;
-import java.util.TimeZone;
+import java.util.Set;
 
 import org.apache.commons.text.StringEscapeUtils;
 import org.slf4j.Logger;
@@ -37,7 +33,7 @@ public class GeekhackMessageService{
         this.isDebug = isDebug;
     }
 
-    public boolean sendMessage(String boardName, List<Entry> potentialPosts, List<String> usersToPing, String webhookUrl, String roleId){
+    public boolean sendMessage(String boardName, List<Entry> potentialPosts, Set<String> usersToPing, String webhookUrl, String roleId){
         StringBuilder message = new StringBuilder();
 
         if(isDebug){
@@ -48,7 +44,10 @@ public class GeekhackMessageService{
 
         // If topic has no specific users interested in it, don't add extra "And also" text
         if(!usersToPing.isEmpty()){
-            String personalizedMessage = "\n " + String.join(", ", usersToPing);
+            String personalizedMessage = String.join(", ", usersToPing);
+            if(!roleId.isEmpty()){
+                personalizedMessage = "\nAnd also: " + personalizedMessage;
+            }
             message.append(roleId).append(personalizedMessage).append("\n\n");
         } else {
             message.append(roleId).append("\n\n");
@@ -60,9 +59,9 @@ public class GeekhackMessageService{
 
             String prettyTitle = StringEscapeUtils.unescapeHtml4(post.getTitle());
 
-            message.append("\"" + prettyTitle + "\" by " + post.getAuthor().getName()).append("\n\n");
+            message.append("\"" + prettyTitle.trim() + "\" by " + post.getAuthor().getName()).append("\n\n");
             message.append("Posted on " + localDate).append("\n\n");
-            message.append(post.getId()).append("\n\n");
+            message.append(post.getId()).append("\n\n");            
         }
 
         if(!isDebug){

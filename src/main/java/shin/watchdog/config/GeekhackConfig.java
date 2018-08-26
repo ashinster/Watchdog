@@ -1,34 +1,31 @@
 package shin.watchdog.config;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
-import shin.watchdog.data.TopicSubscription;
-import shin.watchdog.data.GeekhackUser;
+import shin.watchdog.data.AlertTopic;
 
 @Component
 @ConfigurationProperties(prefix = "watchdog.geekhack")
 public class GeekhackConfig{
 
-    private final List<GeekhackUser> users = new ArrayList<>();
-    private final Map<String, TopicSubscription> updatedTopics = new HashMap<>();
+    private final Map<String, AlertTopic> newTopics = new HashMap<>();
+    private final Map<String, AlertTopic> updatedTopics = new HashMap<>();
 
     /**
-     * @return the users
+     * @return the newTopics
      */
-    public List<GeekhackUser> getUsers() {
-        return users;
+    public Map<String, AlertTopic> getNewTopics() {
+        return newTopics;
     }
 
     /**
      * @return the updatedTopics
      */
-    public Map<String, TopicSubscription> getUpdatedTopics() {
+    public Map<String, AlertTopic> getUpdatedTopics() {
         return updatedTopics;
     }
 }

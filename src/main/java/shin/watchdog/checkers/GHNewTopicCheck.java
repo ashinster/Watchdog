@@ -1,66 +1,40 @@
 package shin.watchdog.checkers;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import shin.watchdog.config.GeekhackConfig;
-import shin.watchdog.data.AlertList;
+import shin.watchdog.data.AlertTopic;
 import shin.watchdog.data.Entry;
-import shin.watchdog.data.Feed;
-import shin.watchdog.data.GeekhackUser;
 import shin.watchdog.interfaces.Checker;
 
 public class GHNewTopicCheck extends Checker{
     final static Logger logger = LoggerFactory.getLogger(GHNewTopicCheck.class);
 
-	@Override
-	public AlertList check(Feed rss, GeekhackConfig config, long previousPubDate, String boardName) {
-        AlertList alertList = new AlertList();
+    public GHNewTopicCheck(Map<String, AlertTopic> alertTopics){
+		super(alertTopics);
+	}
 
-        if(rss != null && rss.getEntry() != null && !rss.getEntry().isEmpty()){
-            List<Entry> newPosts = getNewPosts(rss.getEntry(), previousPubDate, boardName);
+    @Override
+	public boolean check(Entry thread) {
+		boolean doAlert = false;
 
-            if(!newPosts.isEmpty()){
-                // alert people in channel who have role
+        String title = thread.getTitle().trim().toLowerCase();
+        String summary = thread.getSummary().getValue().trim().toLowerCase();
+        String author = thread.getAuthor().getName().trim().toLowerCase();
+        
+        // Check if author's name is in the list of authors we're interested in
+		if(alertTopics.containsKey(author)){
+			AlertTopic alertTopic = alertTopics.get(author);
 
-                List<String> usersToPing = new ArrayList<>();
+			// Check if the new thread contains the topic/subject we're interested in
+			if(title.contains(alertTopic.getTopic()) || summary.contains(alertTopic.getTopic())){
+				// Alert the role
+				doAlert = true;
+			}
+		}
 
-                for(Entry entry : newPosts){
-                    String title = entry.getTitle().trim().toLowerCase();
-                    String summary = entry.getSummary().getValue().trim().toLowerCase();
-                    String author = entry.getAuthor().getName().trim().toLowerCase();
-
-                    for(GeekhackUser user : config.getUsers()){
-                        List<String> userTopics = user.getTopics();
-
-                        for(String topic : userTopics){
-                            String term = topic.split(";")[0].trim().toUpperCase();
-                            String organizer = topic.split(";")[1].trim().toLowerCase();
-
-                            if(title.contains(term) || summary.contains(term) || author.equalsIgnoreCase(organizer) || isDebug){
-                                // Alert these discord IDs
-                                if(!isDebug){
-                                    if(!usersToPing.contains(user.getId())){
-                                        usersToPing.add(user.getId());
-                                    }
-                                } else {
-                                    // Testing alerts, fake mentions
-                                    if(!usersToPing.contains("@" + user.getUsername())){
-                                        usersToPing.add("@" + user.getUsername());
-                                    }
-                                }                                
-                            }
-                        }
-                    }
-                }
-
-                alertList.setNewPosts(newPosts);
-                alertList.setUsersToPing(usersToPing);
-            }
-        }
-        return alertList;
+        return doAlert;
 	}
 }

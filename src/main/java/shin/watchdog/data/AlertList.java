@@ -1,31 +1,38 @@
 package shin.watchdog.data;
 
 import java.util.List;
+import java.util.Set;
 
 public class AlertList{
 
-    private List<Entry> newPosts;
-    private List<String> usersToPing;
+    private List<Entry> newPostsList;
+    private Set<String> usersToPingList;
 
     /**
      * @param newPosts the newPosts to set
      */
-    public void setNewPosts(List<Entry> newPosts) {
-        this.newPosts = newPosts;
+    public void setNewPostsList(List<Entry> newPosts) {
+        this.newPostsList = newPosts;
     }
 
     /**
      * @param usersToPing the usersToPing to set
      */
-    public void setUsersToPing(List<String> usersToPing) {
-        this.usersToPing = usersToPing;
+    public void setUsersToPingList(Set<String> usersToPing) {
+        this.usersToPingList = usersToPing;
     }
 
-    public List<Entry> getNewPostsList(){
-        return newPosts;
+    /**
+     * @return the newPosts
+     */
+    public List<Entry> getNewPostsList() {
+        return newPostsList;
     }
 
-    public List<String> getUsersToPingList(){
-        return usersToPing;
+    /**
+     * @return the usersToPing
+     */
+    public Set<String> getUsersToPingList() {
+        return usersToPingList;
     }
 }

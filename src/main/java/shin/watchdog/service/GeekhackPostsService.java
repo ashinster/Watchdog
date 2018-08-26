@@ -1,9 +1,7 @@
 package shin.watchdog.service;
 
 import java.io.IOException;
-import java.io.StringReader;
 import java.net.SocketTimeoutException;
-import java.text.SimpleDateFormat;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
@@ -40,7 +38,6 @@ public class GeekhackPostsService{
         .setConnectionManager(new PoolingHttpClientConnectionManager())
         .build();
 
-    private boolean isDebug;
     private JAXBContext jaxbContext;
     private Unmarshaller jaxbUnmarshaller;
 
@@ -81,7 +78,7 @@ public class GeekhackPostsService{
         } catch (JAXBException e) {
             logger.error("Error Unmarshalling rss feed for " + boardName, e);
         } catch (Throwable e) {
-            logger.error("Error getting new " + boardName, e);
+            logger.error("Unknown error getting new " + boardName, e);
         } finally{
 			if(entity != null){
 				try {
