@@ -38,7 +38,7 @@ public class WatchdogConfig{
         return new GeekhackProcessor(
             "https://geekhack.org/index.php?action=.xml;sa=news;type=atom;limit=3;board=132",
             "Interest Checks", 
-            "https://discordapp.com/api/webhooks/477261735271858176/atBPCQzWMAj_k6PVrJTMqggwaoEnQ7Hz4HlHjyp6hmfGrdIKgNEbbD9hMrmUms3Y5hVq",
+            "hhttps://discordapp.com/api/webhooks/477261547517902848/eq1z6lMMo4-xdz5WAw3xK9DXKFWBUjPwunbeCHwJbRBYNVToqUailAVEB4-08yc8FyHh",
             "<@&477264441319096321>",
             newTopicChecker
         );
