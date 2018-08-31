@@ -7,7 +7,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import shin.watchdog.data.AlertTopic;
-import shin.watchdog.data.Entry;
+import shin.watchdog.data.atom.Entry;
 
 @Component
 public abstract class Checker{
@@ -24,9 +24,9 @@ public abstract class Checker{
     /**
      * @param key The author
      * Uses the author name as a string to get the 
-     * role ID to alert/ping for
+     * recipient to alert/ping for
      */
-    public String roleIdForTopic(String key){
+    public String getRecipientForTopic(String key){
         return alertTopics.get(key).getRoleId();
     }
 
