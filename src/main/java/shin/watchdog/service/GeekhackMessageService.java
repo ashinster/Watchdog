@@ -27,7 +27,11 @@ public class GeekhackMessageService{
 		this.sdfLocal = new SimpleDateFormat("EEE, dd MMM yyyy h:mm:ss a z");
     }
 
-    public boolean sendMessage(String boardName, List<Alert> alerts, String webhookUrl, String mainRecipient){
+    public boolean sendMessage(List<Alert> alerts, String webhookUrl){
+        return sendMessage(alerts, webhookUrl, "");
+    }
+
+    public boolean sendMessage(List<Alert> alerts, String webhookUrl, String mainRecipient){
         StringBuilder message = new StringBuilder();
 
         if(!mainRecipient.isEmpty()){

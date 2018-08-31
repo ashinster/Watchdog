@@ -14,8 +14,10 @@ public class ThreadUpdatesProcessor extends GeekhackProcessor {
     @Autowired
     Checker updatedTopicChecker;
 
-    public ThreadUpdatesProcessor(String rssUrl, String boardName, String channelUrl, String roleId) {
-        super(rssUrl, boardName, channelUrl, roleId);
+    private final String UPDATES_CHANNEL = "https://discordapp.com/api/webhooks/483098053381849093/VkwqJi4zNO65ydNGmtn42Ac4eNOZR3DLcglRDclNqiJW4A0G7hQtym1Bv5jkJgM8GWJq";
+
+    public ThreadUpdatesProcessor(String rssUrl, String boardName) {
+        super(rssUrl, boardName);
     }
 
     @Override
@@ -40,9 +42,14 @@ public class ThreadUpdatesProcessor extends GeekhackProcessor {
         // Send message in another thread
         if (!threadUpdateAlerts.isEmpty()) {
             new Thread(() -> {
-                geekhackMessageService.sendMessage(boardName, threadUpdateAlerts, channelUrl, roleId);
+                geekhackMessageService.sendMessage(threadUpdateAlerts, UPDATES_CHANNEL);
             }).start();
         }
+    }
+
+    @Override
+    public boolean isAlertListEmpty() {
+        return updatedTopicChecker.isAlertListEmpty();
     }
 
 }

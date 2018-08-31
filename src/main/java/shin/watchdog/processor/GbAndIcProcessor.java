@@ -14,22 +14,27 @@ public class GbAndIcProcessor extends GeekhackProcessor {
     @Autowired
     Checker newTopicChecker;
 
-    public GbAndIcProcessor(String rssUrl, String boardName, String channelUrl, String roleId) {
-        super(rssUrl, boardName, channelUrl, roleId);
+    private final String IC_ROLE = "<@&477264441319096321>";
+    private final String GB_ROLE = "<@&477264488983429130>";
+    private final String IC_CHANNEL = "https://discordapp.com/api/webhooks/477261547517902848/eq1z6lMMo4-xdz5WAw3xK9DXKFWBUjPwunbeCHwJbRBYNVToqUailAVEB4-08yc8FyHh";
+    private final String GB_CHANNEL = "https://discordapp.com/api/webhooks/477261735271858176/atBPCQzWMAj_k6PVrJTMqggwaoEnQ7Hz4HlHjyp6hmfGrdIKgNEbbD9hMrmUms3Y5hVq";
+
+    public GbAndIcProcessor(String rssUrl, String boardName) {
+        super(rssUrl, boardName);
     }
 
     @Override
     public void processHelper(List<Entry> newPosts) {
 
-        List<Alert> icAlert = new ArrayList<>();
-        List<Alert> gbAlert = new ArrayList<>();
+        List<Alert> icAlerts = new ArrayList<>();
+        List<Alert> gbAlerts = new ArrayList<>();
 
         // Check each entry to see if we need to alert a role
         for (Entry entry : newPosts) {
             Alert alert = new Alert(entry);
 
             // Check if we need to alert any additional recipients
-            if (newTopicChecker.check(entry)) {
+            if (!newTopicChecker.isAlertListEmpty() && newTopicChecker.check(entry)) {
                 // If there's a match, then get the alert recipient
                 String author = entry.getAuthor().getName().trim().toLowerCase();
                 String roleId = newTopicChecker.getRecipientForTopic(author);
@@ -39,30 +44,35 @@ public class GbAndIcProcessor extends GeekhackProcessor {
 
             switch (entry.getCategory().getTerm()) {
                 case "70":
-                    gbAlert.add(alert);
+                    gbAlerts.add(alert);
                     break;
                 case "132":
-                    icAlert.add(alert);
+                    icAlerts.add(alert);
                     break;
                 default:
                     logger.warn("Category for \"{}\" has category: {}", entry.getId(), entry.getCategory().getTerm());
             }
         }
 
-        sendAlerts(icAlert, gbAlert);
+        sendAlerts(icAlerts, gbAlerts);
     }
 
     /**
      * Spins up threads to send the alerts for ic and gb
      */
-    private void sendAlerts(List<Alert> icAlert, List<Alert> gbAlert) {
+    private void sendAlerts(List<Alert> icAlerts, List<Alert> gbAlerts) {
         new Thread(() -> {
-            geekhackMessageService.sendMessage(boardName, icAlert, channelUrl, roleId);
+            geekhackMessageService.sendMessage(icAlerts, IC_CHANNEL, IC_ROLE);
         }).start();
 
         new Thread(() -> {
-            geekhackMessageService.sendMessage(boardName, gbAlert, channelUrl, roleId);
+            geekhackMessageService.sendMessage(gbAlerts, GB_CHANNEL, GB_ROLE);
         }).start();
     }
+
+	@Override
+	public boolean isAlertListEmpty() {
+		return newTopicChecker.isAlertListEmpty();
+	}
 
 }

@@ -18,8 +18,24 @@ public class Watchdog{
     @Autowired
     private GeekhackProcessor gbAndIcProcessor;
 
-    // @Autowired
-    // private GeekhackProcessor updatedThreadsProcessor;
+    @Autowired
+    private GeekhackProcessor updatedThreadsProcessor;
+    
+    @Scheduled(cron = "${processor.period:0} * * * * *")
+    public void getInterestChecks(){
+        MDC.put("uuid", UUID.randomUUID().toString());
+        gbAndIcProcessor.process();
+        MDC.clear();
+    }
+
+    @Scheduled(cron = "${processor.period:0} * * * * *")
+    public void getUpdatesForThread(){
+        if(!updatedThreadsProcessor.isAlertListEmpty()){
+            MDC.put("uuid", UUID.randomUUID().toString());
+            updatedThreadsProcessor.process();
+            MDC.clear();
+        }
+    }
 
     // @Autowired
     // private MechmarketProcessor mechmarket;
@@ -27,20 +43,6 @@ public class Watchdog{
     // @Scheduled(fixedRate = 1000 * 60 * 30)
     // public void refreshToken(){
     //     RefreshTokenService.refreshToken();
-    // }
-
-    @Scheduled(cron = "0 * * * * *")
-    public void getInterestChecks(){
-        MDC.put("uuid", UUID.randomUUID().toString());
-        gbAndIcProcessor.process();
-        MDC.clear();
-    }
-
-    // @Scheduled(cron = "0 * * * * *")
-    // public void getUpdatesForThread(){
-    //     MDC.put("uuid", UUID.randomUUID().toString());
-    //     updatedThreadsProcessor.processUpdatedTopic();
-    //     MDC.clear();
     // }
 
     // @Scheduled(cron = "0/5 * * * * *")

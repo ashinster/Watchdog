@@ -25,20 +25,20 @@ public abstract class GeekhackProcessor {
 
     @Autowired
     protected GeekhackMessageService geekhackMessageService;
-    
-    protected long previousPubDate;
-    protected final String rssUrl;
-    protected final String boardName;
-    protected final String channelUrl;
-    protected final String roleId;
-    
-    public GeekhackProcessor(String rssUrl, String boardName, String channelUrl, String roleId) {
+
+    private long previousPubDate;
+    private final String rssUrl;
+    private final String boardName;
+
+    protected GeekhackProcessor(String rssUrl, String boardName) {
         this.previousPubDate = Instant.now().toEpochMilli();
         this.rssUrl = rssUrl;
         this.boardName = boardName;
-        this.channelUrl = channelUrl;
-        this.roleId = roleId;
     }
+
+    abstract public void processHelper(List<Entry> newPosts);
+
+    abstract public boolean isAlertListEmpty();
 
     public void process(){
         // Get the feed via rss/atom
@@ -57,8 +57,6 @@ public abstract class GeekhackProcessor {
         }
     }
 
-    abstract public void processHelper(List<Entry> newPosts);
-
     /**
      * Filters out posts from the current feed that are newer than the previous
      * feed's most recent post
@@ -67,7 +65,7 @@ public abstract class GeekhackProcessor {
      * @returns List of posts that are newer than the previous feed's most recent
      *          post
      */
-    public List<Entry> getNewPosts(List<Entry> fullList) {
+    private List<Entry> getNewPosts(List<Entry> fullList) {
         List<Entry> newPosts = new ArrayList<>();
 
         for (Entry entry : fullList) {

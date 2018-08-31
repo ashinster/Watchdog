@@ -1,6 +1,6 @@
 package shin.watchdog.checkers;
 
-import java.util.Map;
+import javax.annotation.PostConstruct;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,8 +12,9 @@ import shin.watchdog.interfaces.Checker;
 public class GHUpdatedTopicCheck extends Checker{
 	final static Logger logger = LoggerFactory.getLogger(GHUpdatedTopicCheck.class);
 	
-	public GHUpdatedTopicCheck(Map<String, AlertTopic> alertTopics){
-		super(alertTopics);
+	@PostConstruct
+	private void postConstruct(){
+		this.alertTopics = config.getUpdatedTopics();
 	}
 
 	@Override
