@@ -5,7 +5,7 @@ import javax.xml.bind.JAXBException;
 import org.junit.Assert;
 import org.junit.Test;
 
-import shin.watchdog.data.Feed;
+import shin.watchdog.data.atom.Feed;
 import shin.watchdog.service.GeekhackPostsService;
 
 public class TestRssFeed {
