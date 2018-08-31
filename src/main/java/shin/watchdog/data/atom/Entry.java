@@ -1,4 +1,4 @@
-package shin.watchdog.data;
+package shin.watchdog.data.atom;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;

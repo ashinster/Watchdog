@@ -6,7 +6,7 @@
 //
 
 
-package shin.watchdog.data;
+package shin.watchdog.data.atom;
 
 import java.util.ArrayList;
 import java.util.List;
