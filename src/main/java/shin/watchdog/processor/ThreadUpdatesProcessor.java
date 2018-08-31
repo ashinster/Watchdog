@@ -1,15 +1,12 @@
 package shin.watchdog.processor;
 
-import java.time.Instant;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
-import shin.watchdog.data.Entry;
-import shin.watchdog.data.Feed;
+import shin.watchdog.data.Alert;
+import shin.watchdog.data.atom.Entry;
 import shin.watchdog.interfaces.Checker;
 
 public class ThreadUpdatesProcessor extends GeekhackProcessor {
@@ -22,41 +19,29 @@ public class ThreadUpdatesProcessor extends GeekhackProcessor {
     }
 
     @Override
-    public void process(){
-        // Get the feed via rss/atom
-        Feed rss = postsService.makeCall(this.rssUrl, this.boardName);
+    public void processHelper(List<Entry> newPosts) {
+        List<Alert> threadUpdateAlerts = new ArrayList<>();
 
-        if (rss != null && rss.getEntry() != null && !rss.getEntry().isEmpty()) {
-            List<Entry> newPosts = getNewPosts(rss.getEntry());
+        // Check each entry to see if we need to alert a role
+        for (Entry entry : newPosts) {
+            if (updatedTopicChecker.check(entry)) {
+                // If there's a match, then get the alert recipient
+                String author = entry.getAuthor().getName().trim().toLowerCase();
+                String roleId = updatedTopicChecker.getRecipientForTopic(author);
 
-            if (!newPosts.isEmpty()) {
-                // Only send alerts for new comments that we're interested in
-                List<Entry> postsToPingFor = new ArrayList<>();
+                // Add alert for the recipient for this entry
+                Alert alert = new Alert(entry);
+                alert.setRecipient(roleId);
 
-                // list of users/roles to alert
-                Set<String> usersToPing = new HashSet<>();
-
-                // Check each entry to see if we need to alert a role
-                for (Entry entry : newPosts) {
-                    if (updatedTopicChecker.check(entry)) {
-                        logger.info("New {} found: \"{}\" by {} ({})", boardName, entry.getTitle(), entry.getAuthor().getName(), entry.getId());
-                        // If there's a match, then get the role to alert for
-                        String author = entry.getAuthor().getName().trim().toLowerCase();
-                        String roleId = updatedTopicChecker.roleIdForTopic(author);
-
-                        // Add the role to ping
-                        usersToPing.add(roleId);
-                        postsToPingFor.add(entry);
-                    }
-                }
-
-                // remove posts from list for updated threads process
-                if(!postsToPingFor.isEmpty() && !usersToPing.isEmpty()){
-                    geekhackMessageService.sendMessage(boardName, postsToPingFor, usersToPing, channelUrl, roleId);
-                }
-
-                super.previousPubDate = Instant.parse(newPosts.get(0).getPublished()).toEpochMilli();
+                threadUpdateAlerts.add(alert);
             }
+        }
+
+        // Send message in another thread
+        if (!threadUpdateAlerts.isEmpty()) {
+            new Thread(() -> {
+                geekhackMessageService.sendMessage(boardName, threadUpdateAlerts, channelUrl, roleId);
+            }).start();
         }
     }
 

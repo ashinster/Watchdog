@@ -2,18 +2,15 @@ package shin.watchdog.processor;
 
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 
-import shin.watchdog.data.Entry;
-import shin.watchdog.data.Feed;
-import shin.watchdog.interfaces.Checker;
+import shin.watchdog.data.atom.Entry;
+import shin.watchdog.data.atom.Feed;
 import shin.watchdog.service.GeekhackMessageService;
 import shin.watchdog.service.GeekhackPostsService;
 
@@ -30,10 +27,10 @@ public abstract class GeekhackProcessor {
     protected GeekhackMessageService geekhackMessageService;
     
     protected long previousPubDate;
-    protected String rssUrl;
-    protected String boardName;
-    protected String channelUrl;
-    protected String roleId;
+    protected final String rssUrl;
+    protected final String boardName;
+    protected final String channelUrl;
+    protected final String roleId;
     
     public GeekhackProcessor(String rssUrl, String boardName, String channelUrl, String roleId) {
         this.previousPubDate = Instant.now().toEpochMilli();
@@ -43,7 +40,24 @@ public abstract class GeekhackProcessor {
         this.roleId = roleId;
     }
 
-    abstract public void process();
+    public void process(){
+        // Get the feed via rss/atom
+        Feed feed = postsService.makeCall(this.rssUrl, this.boardName);
+
+        if (feed != null && feed.getEntry() != null && !feed.getEntry().isEmpty()) {
+            // Only get new posts after our last known entry publish date
+            List<Entry> newPosts = getNewPosts(feed.getEntry());
+
+            if (!newPosts.isEmpty()) {
+                // process through the posts and send an alert if applicable
+                processHelper(newPosts);
+
+                this.previousPubDate = Instant.parse(newPosts.get(0).getPublished()).toEpochMilli();
+            }
+        }
+    }
+
+    abstract public void processHelper(List<Entry> newPosts);
 
     /**
      * Filters out posts from the current feed that are newer than the previous
@@ -56,9 +70,13 @@ public abstract class GeekhackProcessor {
     public List<Entry> getNewPosts(List<Entry> fullList) {
         List<Entry> newPosts = new ArrayList<>();
 
-        for (Entry item : fullList) {
-            if (Instant.parse(item.getPublished()).toEpochMilli() > this.previousPubDate || this.isDebug) {
-                newPosts.add(item);
+        for (Entry entry : fullList) {
+            if (Instant.parse(entry.getPublished()).toEpochMilli() > this.previousPubDate || this.isDebug) {
+                if(!entry.getTitle().startsWith("Re:")){
+                    logger.info("New topic found: \"{}\" by {} ({})",
+                        entry.getTitle(), entry.getAuthor().getName(), entry.getId());
+                }
+                newPosts.add(entry);
             }
         }
 

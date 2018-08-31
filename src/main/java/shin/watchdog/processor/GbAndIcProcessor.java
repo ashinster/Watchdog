@@ -1,14 +1,12 @@
 package shin.watchdog.processor;
 
-import java.time.Instant;
-import java.util.HashSet;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
-import shin.watchdog.data.Entry;
-import shin.watchdog.data.Feed;
+import shin.watchdog.data.Alert;
+import shin.watchdog.data.atom.Entry;
 import shin.watchdog.interfaces.Checker;
 
 public class GbAndIcProcessor extends GeekhackProcessor {
@@ -21,36 +19,50 @@ public class GbAndIcProcessor extends GeekhackProcessor {
     }
 
     @Override
-    public void process() {
-        // Get the feed via rss/atom
-        Feed rss = postsService.makeCall(this.rssUrl, this.boardName);
+    public void processHelper(List<Entry> newPosts) {
 
-        if (rss != null && rss.getEntry() != null && !rss.getEntry().isEmpty()) {
-            List<Entry> newPosts = getNewPosts(rss.getEntry());
+        List<Alert> icAlert = new ArrayList<>();
+        List<Alert> gbAlert = new ArrayList<>();
 
-            if (!newPosts.isEmpty()) {
-                // list of users/roles to alert
-                Set<String> usersToPing = new HashSet<>();
+        // Check each entry to see if we need to alert a role
+        for (Entry entry : newPosts) {
+            Alert alert = new Alert(entry);
 
-                // Check each entry to see if we need to alert a role
-                for (Entry entry : newPosts) {
-                    logger.info("New {} found: \"{}\" by {} ({})", boardName, entry.getTitle(),
-                            entry.getAuthor().getName(), entry.getId());
-                    if (newTopicChecker.check(entry)) {
-                        // If there's a match, then get the role to alert for
-                        String author = entry.getAuthor().getName().trim().toLowerCase();
-                        String roleId = newTopicChecker.roleIdForTopic(author);
+            // Check if we need to alert any additional recipients
+            if (newTopicChecker.check(entry)) {
+                // If there's a match, then get the alert recipient
+                String author = entry.getAuthor().getName().trim().toLowerCase();
+                String roleId = newTopicChecker.getRecipientForTopic(author);
 
-                        // Add the role to ping
-                        usersToPing.add(roleId);
-                    }
-                }
+                alert.setRecipient(roleId);
+            }
 
-                geekhackMessageService.sendMessage(boardName, newPosts, usersToPing, channelUrl, roleId);
-
-                super.previousPubDate = Instant.parse(newPosts.get(0).getPublished()).toEpochMilli();
+            switch (entry.getCategory().getTerm()) {
+                case "70":
+                    gbAlert.add(alert);
+                    break;
+                case "132":
+                    icAlert.add(alert);
+                    break;
+                default:
+                    logger.warn("Category for \"{}\" has category: {}", entry.getId(), entry.getCategory().getTerm());
             }
         }
+
+        sendAlerts(icAlert, gbAlert);
+    }
+
+    /**
+     * Spins up threads to send the alerts for ic and gb
+     */
+    private void sendAlerts(List<Alert> icAlert, List<Alert> gbAlert) {
+        new Thread(() -> {
+            geekhackMessageService.sendMessage(boardName, icAlert, channelUrl, roleId);
+        }).start();
+
+        new Thread(() -> {
+            geekhackMessageService.sendMessage(boardName, gbAlert, channelUrl, roleId);
+        }).start();
     }
 
 }
