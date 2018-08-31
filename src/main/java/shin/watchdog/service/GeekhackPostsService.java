@@ -19,7 +19,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
-import shin.watchdog.data.Feed;
+import shin.watchdog.data.atom.Feed;
 
 @Service
 public class GeekhackPostsService{
