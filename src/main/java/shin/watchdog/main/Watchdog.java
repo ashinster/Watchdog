@@ -16,13 +16,10 @@ public class Watchdog{
     //private static final Logger log = LoggerFactory.getLogger(Watchdog.class);
 
     @Autowired
-    private GeekhackProcessor interestChecksProcessor;
+    private GeekhackProcessor gbAndIcProcessor;
 
-    @Autowired
-    private GeekhackProcessor groupBuysProcessor;
-
-    @Autowired
-    private GeekhackProcessor updatedThreadsProcessor;
+    // @Autowired
+    // private GeekhackProcessor updatedThreadsProcessor;
 
     // @Autowired
     // private MechmarketProcessor mechmarket;
@@ -35,23 +32,16 @@ public class Watchdog{
     @Scheduled(cron = "0 * * * * *")
     public void getInterestChecks(){
         MDC.put("uuid", UUID.randomUUID().toString());
-        interestChecksProcessor.process();
+        gbAndIcProcessor.process();
         MDC.clear();
     }
 
-    @Scheduled(cron = "0 * * * * *")
-    public void getGroupBuys(){
-        MDC.put("uuid", UUID.randomUUID().toString());
-        groupBuysProcessor.process();
-        MDC.clear();
-    }
-
-    @Scheduled(cron = "0 * * * * *")
-    public void getUpdatesForThread(){
-        MDC.put("uuid", UUID.randomUUID().toString());
-        updatedThreadsProcessor.process();
-        MDC.clear();
-    }
+    // @Scheduled(cron = "0 * * * * *")
+    // public void getUpdatesForThread(){
+    //     MDC.put("uuid", UUID.randomUUID().toString());
+    //     updatedThreadsProcessor.processUpdatedTopic();
+    //     MDC.clear();
+    // }
 
     // @Scheduled(cron = "0/5 * * * * *")
     // public void getMechmarketPosts(){
