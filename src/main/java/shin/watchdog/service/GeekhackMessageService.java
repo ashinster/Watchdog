@@ -3,7 +3,6 @@ package shin.watchdog.service;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.util.List;
-import java.util.Set;
 
 import org.apache.commons.text.StringEscapeUtils;
 import org.slf4j.Logger;
@@ -12,7 +11,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import shin.watchdog.actions.SendPrivateMessage;
-import shin.watchdog.data.Entry;
+import shin.watchdog.data.Alert;
 
 @Service
 public class GeekhackMessageService{
@@ -28,47 +27,45 @@ public class GeekhackMessageService{
 		this.sdfLocal = new SimpleDateFormat("EEE, dd MMM yyyy h:mm:ss a z");
     }
 
-    public GeekhackMessageService(boolean isDebug){
-        this();
-        this.isDebug = isDebug;
-    }
-
-    public boolean sendMessage(String boardName, List<Entry> potentialPosts, Set<String> usersToPing, String webhookUrl, String roleId){
+    public boolean sendMessage(String boardName, List<Alert> alerts, String webhookUrl, String mainRecipient){
         StringBuilder message = new StringBuilder();
 
-        if(isDebug){
-            if(!roleId.isEmpty()){
-                roleId = "@FakeRole";
+        if(!mainRecipient.isEmpty()){
+            if(isDebug){
+                mainRecipient = "@FakeRole";
             }
+            message.append(mainRecipient).append("\n\n");
         }
 
-        // If topic has no specific users interested in it, don't add extra "And also" text
-        if(!usersToPing.isEmpty()){
-            String personalizedMessage = String.join(", ", usersToPing);
-            if(!roleId.isEmpty()){
-                personalizedMessage = "\nAnd also: " + personalizedMessage;
+        for(Alert alert : alerts){
+
+            if(alert.getRecipient() != null){
+                message.append(alert.getRecipient()).append("\n");
             }
-            message.append(roleId).append(personalizedMessage).append("\n\n");
-        } else {
-            message.append(roleId).append("\n\n");
-        }
 
-        for(Entry siteData : potentialPosts){
-            Entry post = (Entry) siteData;
-            String localDate = sdfLocal.format(Instant.parse(post.getPublished()).toEpochMilli());
+            String localDate = sdfLocal.format(Instant.parse(alert.getPublished()).toEpochMilli());
 
-            String prettyTitle = StringEscapeUtils.unescapeHtml4(post.getTitle());
+            String prettyTitle = StringEscapeUtils.unescapeHtml4(alert.getTitle());
 
-            message.append("\"" + prettyTitle.trim() + "\" by " + post.getAuthor().getName()).append("\n\n");
-            message.append("Posted on " + localDate).append("\n\n");
-            message.append(post.getId()).append("\n\n");            
+            message.append("**\"" + prettyTitle.trim() + "\" by " + alert.getAuthor() + "**").append("\n");
+            message.append("*Posted on " + localDate + "*").append("\n");
+            message.append(alert.getId()).append("\n\n");    
+            
+            /** Sample:
+             * @Interest Checks
+             * 
+             * @Jane
+             * "[GB] TGR Jane" by yuktsi 
+             * Posted on 8:00PM EST
+             **/
         }
 
         if(!isDebug){
-            return SendPrivateMessage.sendPM("New " + boardName + " Found on Geekhack", message.toString(), webhookUrl);
+            return SendPrivateMessage.sendPM("", message.toString(), webhookUrl);
         } else {
-            String debugChannel = "https://discordapp.com/api/webhooks/477287919103639555/7LBWCz1DrYdMN0VHhv1hxpREIYhxniH0VKV0ZQ-abgZlZmxQfWsJ-Ec_KQCOJqB9Wn1L";
-            return SendPrivateMessage.sendPM("New " + boardName + " Found on Geekhack", message.toString(), debugChannel);
+            // Send to debug channel instead
+            webhookUrl = "https://discordapp.com/api/webhooks/477287919103639555/7LBWCz1DrYdMN0VHhv1hxpREIYhxniH0VKV0ZQ-abgZlZmxQfWsJ-Ec_KQCOJqB9Wn1L";
+            return SendPrivateMessage.sendPM("", message.toString(), webhookUrl);
         }
     }
 }
