@@ -1,0 +1,49 @@
+List<Entry> newPosts = getNewPosts()
+
+List<Alert> gbAlerts = new ArrayList<>();
+List<Alert> icAlerts = new ArrayList<>();
+
+for(Entry entry : newPosts){
+    Alert alert = new Alert(entry);
+    if(checker.check(newPosts.get(i))){
+        alert.setUser(config.get(entry.getAuthor()).getRoleId());
+    }
+
+    switch(entry.getCategory()){
+        case "70":
+            gbAlerts.add(alert);
+        case "132":
+            icAlerts.add(alert);
+    }
+}
+
+messageService.send(gbAlerts, channelUrl, channelRole);
+messageService.send(icAlerts, channelUrl, channelRole);
+
+...
+
+public class Alert{
+    //Entry entry;
+
+    String title;
+    String author;
+    String published;
+    String id;
+
+    String user;
+}
+
+...
+
+String message = channelRole;
+for(Alert alert : alerts){
+    Entry entry = alert.getEntry();
+
+    if(alert.getUser() != null){
+        message += " " + alert.getUser();
+    }
+
+    message += "\n";
+    message += entry.getTitle() + " by " + entry.getAuthor() + "\n";
+    message += entry.getUrl();
+}
