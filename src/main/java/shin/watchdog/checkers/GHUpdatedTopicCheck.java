@@ -6,7 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import shin.watchdog.data.AlertTopic;
-import shin.watchdog.data.Entry;
+import shin.watchdog.data.atom.Entry;
 import shin.watchdog.interfaces.Checker;
 
 public class GHUpdatedTopicCheck extends Checker{
@@ -32,7 +32,6 @@ public class GHUpdatedTopicCheck extends Checker{
 
 			// Check if comment by the author is created in the thread we're interested in
 			if(entryId.equals(alertTopic.getTopic())){
-				// Alert the role
 				doAlert = true;
 			}
 		}

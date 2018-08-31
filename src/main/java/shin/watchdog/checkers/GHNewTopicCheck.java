@@ -6,7 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import shin.watchdog.data.AlertTopic;
-import shin.watchdog.data.Entry;
+import shin.watchdog.data.atom.Entry;
 import shin.watchdog.interfaces.Checker;
 
 public class GHNewTopicCheck extends Checker{
@@ -30,7 +30,6 @@ public class GHNewTopicCheck extends Checker{
 
 			// Check if the new thread contains the topic/subject we're interested in
 			if(title.contains(alertTopic.getTopic()) || summary.contains(alertTopic.getTopic())){
-				// Alert the role
 				doAlert = true;
 			}
 		}
