@@ -61,13 +61,17 @@ public class GbAndIcProcessor extends GeekhackProcessor {
      * Spins up threads to send the alerts for ic and gb
      */
     private void sendAlerts(List<Alert> icAlerts, List<Alert> gbAlerts) {
-        new Thread(() -> {
-            geekhackMessageService.sendMessage(icAlerts, IC_CHANNEL, IC_ROLE);
-        }).start();
+        if(!icAlerts.isEmpty()){
+            new Thread(() -> {
+                geekhackMessageService.sendMessage(icAlerts, IC_CHANNEL, IC_ROLE);
+            }).start();
+        }
 
-        new Thread(() -> {
-            geekhackMessageService.sendMessage(gbAlerts, GB_CHANNEL, GB_ROLE);
-        }).start();
+        if(!gbAlerts.isEmpty()){
+            new Thread(() -> {
+                geekhackMessageService.sendMessage(gbAlerts, GB_CHANNEL, GB_ROLE);
+            }).start();
+        }
     }
 
 	@Override
