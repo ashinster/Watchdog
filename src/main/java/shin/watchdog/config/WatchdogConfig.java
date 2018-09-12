@@ -26,11 +26,21 @@ public class WatchdogConfig{
     }
 
     @Bean
-    public GeekhackProcessor gbAndIcProcessor() throws JAXBException{
+    public GeekhackProcessor icProcessor() throws JAXBException{
         return new GbAndIcProcessor(
             "https://geekhack.org/index.php?action=.xml;type=atom",
-            "132,70",
-            "10",
+            "132",
+            "5",
+            "news"
+        );
+    }
+
+    @Bean
+    public GeekhackProcessor gbProcessor() throws JAXBException{
+        return new GbAndIcProcessor(
+            "https://geekhack.org/index.php?action=.xml;type=atom",
+            "70",
+            "5",
             "news"
         );
     }

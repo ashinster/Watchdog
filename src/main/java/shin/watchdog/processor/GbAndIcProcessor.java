@@ -26,8 +26,7 @@ public class GbAndIcProcessor extends GeekhackProcessor {
     @Override
     public void processHelper(List<Entry> newPosts) {
 
-        List<Alert> icAlerts = new ArrayList<>();
-        List<Alert> gbAlerts = new ArrayList<>();
+        List<Alert> alerts = new ArrayList<>();
 
         // Check each entry to see if we need to alert a role
         for (Entry entry : newPosts) {
@@ -42,19 +41,10 @@ public class GbAndIcProcessor extends GeekhackProcessor {
                 alert.setRecipient(roleId);
             }
 
-            switch (entry.getCategory().getTerm()) {
-                case "70":
-                    gbAlerts.add(alert);
-                    break;
-                case "132":
-                    icAlerts.add(alert);
-                    break;
-                default:
-                    logger.warn("Category for \"{}\" has category: {}", entry.getId(), entry.getCategory().getTerm());
-            }
+            alerts.add(alert);
         }
 
-        sendAlerts(icAlerts, gbAlerts);
+        sendAlert(alerts);
     }
 
     /**
@@ -71,6 +61,21 @@ public class GbAndIcProcessor extends GeekhackProcessor {
             new Thread(() -> {
                 geekhackMessageService.sendMessage(gbAlerts, GB_CHANNEL, GB_ROLE);
             }).start();
+        }
+    }
+
+    private void sendAlert(List<Alert> alerts){
+        if(!alerts.isEmpty()){
+            switch(boards){
+                case "70":
+                    geekhackMessageService.sendMessage(alerts, GB_CHANNEL, GB_ROLE);
+                    break;
+                case "132":
+                    geekhackMessageService.sendMessage(alerts, IC_CHANNEL, IC_ROLE);
+                    break;
+                default:
+                    logger.error("what the aass");
+            }
         }
     }
 

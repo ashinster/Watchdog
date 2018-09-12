@@ -28,10 +28,10 @@ public abstract class GeekhackProcessor {
 
     private long previousPubDate;
 
-    private final String rssUrl;
-    private final String limit;
-    private final String boards;
-    private final String subAction;
+    protected final String rssUrl;
+    protected final String limit;
+    protected final String boards;
+    protected final String subAction;
 
     protected GeekhackProcessor(String rssUrl, String boards, String limit, String subAction) {
         this.previousPubDate = Instant.now().toEpochMilli();

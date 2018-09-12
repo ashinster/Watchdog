@@ -16,19 +16,29 @@ public class Watchdog{
     //private static final Logger log = LoggerFactory.getLogger(Watchdog.class);
 
     @Autowired
-    private GeekhackProcessor gbAndIcProcessor;
+    private GeekhackProcessor icProcessor;
+
+    @Autowired
+    private GeekhackProcessor gbProcessor;
 
     @Autowired
     private GeekhackProcessor updatedThreadsProcessor;
     
-    @Scheduled(cron = "${processor.period:0} * * * * *")
+    @Scheduled(cron = "${interval:0} * * * * *")
     public void getInterestChecks(){
         MDC.put("uuid", UUID.randomUUID().toString());
-        gbAndIcProcessor.process();
+        icProcessor.process();
         MDC.clear();
     }
 
-    @Scheduled(cron = "${processor.period:0} * * * * *")
+    @Scheduled(cron = "${interval:0} * * * * *")
+    public void getGroupBuys(){
+        MDC.put("uuid", UUID.randomUUID().toString());
+        gbProcessor.process();
+        MDC.clear();
+    }
+
+    @Scheduled(cron = "${interval:0} * * * * *")
     public void getUpdatesForThread(){
         if(!updatedThreadsProcessor.isAlertListEmpty()){
             MDC.put("uuid", UUID.randomUUID().toString());
