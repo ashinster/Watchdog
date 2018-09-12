@@ -59,7 +59,7 @@ public class GeekhackPostsService{
             entity = response.getEntity();
 
 			if (response.getStatusLine().getStatusCode() >= 300) {
-				throw new Exception("Retrieved bad response code: " + response.getStatusLine());
+				logger.error("Retrieved bad response code: " + response.getStatusLine());
 			} else {
 				if (entity != null) {
                     // Create the Rss object from the stream
@@ -68,7 +68,7 @@ public class GeekhackPostsService{
                     // StringReader reader = new StringReader(xml);
                     rssFeed = (Feed) jaxbUnmarshaller.unmarshal(response.getEntity().getContent());
 				} else {
-					throw new Exception("Entity from Geekhack RSS GET request was null for " + boardName);
+					logger.error("Entity from Geekhack RSS GET request was null for " + boardName);
 				}
 			}
         } catch (SocketTimeoutException e){

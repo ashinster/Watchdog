@@ -27,22 +27,27 @@ public abstract class GeekhackProcessor {
     protected GeekhackMessageService geekhackMessageService;
 
     private long previousPubDate;
-    private final String rssUrl;
-    private final String boardName;
 
-    protected GeekhackProcessor(String rssUrl, String boardName) {
+    private final String rssUrl;
+    private final String limit;
+    private final String boards;
+    private final String subAction;
+
+    protected GeekhackProcessor(String rssUrl, String boards, String limit, String subAction) {
         this.previousPubDate = Instant.now().toEpochMilli();
-        this.rssUrl = rssUrl;
-        this.boardName = boardName;
+        this.boards = boards;
+        this.limit = limit;
+        this.subAction = subAction;
+        this.rssUrl = rssUrl + String.format(";boards=%s;limit=%s;sa=%s", boards, limit, subAction);
     }
 
     abstract public void processHelper(List<Entry> newPosts);
 
     abstract public boolean isAlertListEmpty();
 
-    public void process(){
+    public void process() {
         // Get the feed via rss/atom
-        Feed feed = postsService.makeCall(this.rssUrl, this.boardName);
+        Feed feed = postsService.makeCall(this.rssUrl, this.subAction);
 
         if (feed != null && feed.getEntry() != null && !feed.getEntry().isEmpty()) {
             // Only get new posts after our last known entry publish date
@@ -70,11 +75,17 @@ public abstract class GeekhackProcessor {
 
         for (Entry entry : fullList) {
             if (Instant.parse(entry.getPublished()).toEpochMilli() > this.previousPubDate || this.isDebug) {
-                if(!entry.getTitle().startsWith("Re:")){
-                    logger.info("New topic found: \"{}\" by {} ({})",
-                        entry.getTitle(), entry.getAuthor().getName(), entry.getId());
+                if (!entry.getTitle().startsWith("Re:")) {
+
+                    logger.info("New topic found: \"{}\" by {} ({})", entry.getTitle(), entry.getAuthor().getName(),
+                            entry.getId());
+
+                    newPosts.add(entry);
+                } else {
+                    if (this.subAction.equalsIgnoreCase("recent")) {
+                        newPosts.add(entry);
+                    }
                 }
-                newPosts.add(entry);
             }
         }
 

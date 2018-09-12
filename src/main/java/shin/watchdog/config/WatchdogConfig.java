@@ -28,16 +28,20 @@ public class WatchdogConfig{
     @Bean
     public GeekhackProcessor gbAndIcProcessor() throws JAXBException{
         return new GbAndIcProcessor(
-            "https://geekhack.org/index.php?action=.xml;sa=news;type=atom;limit=4;boards=132,70",
-            "Interest Checks and Group Buys"
+            "https://geekhack.org/index.php?action=.xml;type=atom",
+            "132,70",
+            "4",
+            "news"
         );
     }
 
     @Bean
     public GeekhackProcessor updatedThreadsProcessor() throws JAXBException{
         return new ThreadUpdatesProcessor(
-            "https://geekhack.org/index.php?action=.xml;type=atom;limit=10;board=70;sa=recent", 
-            "Update for a Geekhack Group Buy Thread"
+            "https://geekhack.org/index.php?action=.xml;type=atom", 
+            "132,70",
+            "10",
+            "recent"
         );
     }
 

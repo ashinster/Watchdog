@@ -16,8 +16,8 @@ public class ThreadUpdatesProcessor extends GeekhackProcessor {
 
     private final String UPDATES_CHANNEL = "https://discordapp.com/api/webhooks/483098053381849093/VkwqJi4zNO65ydNGmtn42Ac4eNOZR3DLcglRDclNqiJW4A0G7hQtym1Bv5jkJgM8GWJq";
 
-    public ThreadUpdatesProcessor(String rssUrl, String boardName) {
-        super(rssUrl, boardName);
+    public ThreadUpdatesProcessor(String rssUrl, String boards, String limit, String subAction) {
+        super(rssUrl, boards, limit, subAction);
     }
 
     @Override
