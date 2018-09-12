@@ -30,7 +30,7 @@ public class WatchdogConfig{
         return new GbAndIcProcessor(
             "https://geekhack.org/index.php?action=.xml;type=atom",
             "132,70",
-            "4",
+            "10",
             "news"
         );
     }
