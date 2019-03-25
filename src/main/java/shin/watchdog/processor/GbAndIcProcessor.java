@@ -65,17 +65,15 @@ public class GbAndIcProcessor extends GeekhackProcessor {
     }
 
     private void sendAlert(List<Alert> alerts){
-        if(!alerts.isEmpty()){
-            switch(boards){
-                case "70":
-                    geekhackMessageService.sendMessage(alerts, GB_CHANNEL, GB_ROLE);
-                    break;
-                case "132":
-                    geekhackMessageService.sendMessage(alerts, IC_CHANNEL, IC_ROLE);
-                    break;
-                default:
-                    logger.error("what the aass");
-            }
+        switch(boards){
+            case "70":
+                geekhackMessageService.sendMessage(alerts, GB_CHANNEL, GB_ROLE);
+                break;
+            case "132":
+                geekhackMessageService.sendMessage(alerts, IC_CHANNEL, IC_ROLE);
+                break;
+            default:
+                logger.error("what the aass");
         }
     }
 

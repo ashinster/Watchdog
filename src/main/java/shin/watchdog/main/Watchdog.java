@@ -38,7 +38,7 @@ public class Watchdog{
         MDC.clear();
     }
 
-    @Scheduled(cron = "${interval:0} * * * * *")
+    @Scheduled(cron = "${interval:0/45} * * * * *")
     public void getUpdatesForThread(){
         if(!updatedThreadsProcessor.isAlertListEmpty()){
             MDC.put("uuid", UUID.randomUUID().toString());
