@@ -1,60 +1,6 @@
 watchdog:
-  mechmarket:
-    interval: 5
-    users:
-      - sendto: H3NT4I
-        special:
-          - Eat_the_food
-      - sendto: timidsa
-        ignore:
-          - ezeallinh
-          - scud80
-          - legit309
-          - LightningXI
-          - expensive-hobbies
-          - ggZyg
-          - crusader_alex
-        special: 
-          - Eat_the_food
-          - TimidSA
-          - mgsickler
-        listingtypes:
-          - GB
-          - IC
-          - Vendor
-        search:
-          - term: solarized dark
-          - term: Novatouch
-            exclude:
-              - novatouch slider
-              - novatouch stem
-          - term: Panda
-            exclude:
-              - trash panda
-              - panda stem
-              - gaf panda
-              - stash panda
-              - hash panda
-              - unholy panda
-              - cashed panda
-              - putrid panda
-          - term: Dolch Pac
-            exclude:
-              - dolch pac keys
-              - dolch pac key set
-              - dolch pac keyset
-              - dolch pac keycap
-              - dolch pac key cap
-              - dolch pac cap
-              - dolch pac set
-  geekhack:
-    newTopics:
-      "yuktsi":
-        roleId: <@&483131936865386496>
-        topic: jane
-      "quantastrophus":
-        roleId: <@&483131969136492578>
-        topic: kyuu
-      "hineybush":
-        roleId: <@&483132005090066432>
-        topic: h87a
+  message:  
+    discord: |
+      **"%s"** by %s
+      *Posted on %s*
+      %s%n%n

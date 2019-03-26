@@ -1,85 +1,43 @@
 package shin.watchdog.processor;
 
-import java.util.ArrayList;
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import shin.watchdog.data.GeekhackThread;
 
-import shin.watchdog.data.Alert;
-import shin.watchdog.data.atom.Entry;
-import shin.watchdog.interfaces.Checker;
-
+/**
+ * Class which will process new Geekhack GB and IC threads
+ */
 public class GbAndIcProcessor extends GeekhackProcessor {
-
-    @Autowired
-    Checker newTopicChecker;
 
     private final String IC_ROLE = "<@&477264441319096321>";
     private final String GB_ROLE = "<@&477264488983429130>";
     private final String IC_CHANNEL = "https://discordapp.com/api/webhooks/477261547517902848/eq1z6lMMo4-xdz5WAw3xK9DXKFWBUjPwunbeCHwJbRBYNVToqUailAVEB4-08yc8FyHh";
     private final String GB_CHANNEL = "https://discordapp.com/api/webhooks/477261735271858176/atBPCQzWMAj_k6PVrJTMqggwaoEnQ7Hz4HlHjyp6hmfGrdIKgNEbbD9hMrmUms3Y5hVq";
 
-    public GbAndIcProcessor(String rssUrl, String boards, String limit, String subAction) {
-        super(rssUrl, boards, limit, subAction);
+    public GbAndIcProcessor(String boardName, String rssUrl, String boardId, String limit, String subAction) {
+        super(boardName, rssUrl, boardId, limit, subAction);
     }
 
     @Override
-    public void processHelper(List<Entry> newPosts) {
-
-        List<Alert> alerts = new ArrayList<>();
-
-        // Check each entry to see if we need to alert a role
-        for (Entry entry : newPosts) {
-            Alert alert = new Alert(entry);
-
-            // Check if we need to alert any additional recipients
-            if (!newTopicChecker.isAlertListEmpty() && newTopicChecker.check(entry)) {
-                // If there's a match, then get the alert recipient
-                String author = entry.getAuthor().getName().trim().toLowerCase();
-                String roleId = newTopicChecker.getRecipientForTopic(author);
-
-                alert.setRecipient(roleId);
-            }
-
-            alerts.add(alert);
-        }
-
-        sendAlert(alerts);
+    public void processHelper(List<GeekhackThread> newThreads) {
+        sendAlert(newThreads);
     }
 
     /**
-     * Spins up threads to send the alerts for ic and gb
+     * Sends an alert for the list of new threads to the configured Discord channel and role
+     * @param newThreads The list of new threads
      */
-    private void sendAlerts(List<Alert> icAlerts, List<Alert> gbAlerts) {
-        if(!icAlerts.isEmpty()){
-            new Thread(() -> {
-                geekhackMessageService.sendMessage(icAlerts, IC_CHANNEL, IC_ROLE);
-            }).start();
-        }
-
-        if(!gbAlerts.isEmpty()){
-            new Thread(() -> {
-                geekhackMessageService.sendMessage(gbAlerts, GB_CHANNEL, GB_ROLE);
-            }).start();
-        }
-    }
-
-    private void sendAlert(List<Alert> alerts){
-        switch(boards){
+    private void sendAlert(List<GeekhackThread> newThreads){
+        switch(boardId){
             case "70":
-                geekhackMessageService.sendMessage(alerts, GB_CHANNEL, GB_ROLE);
+                geekhackMessageService.sendMessage(newThreads, GB_CHANNEL, GB_ROLE);
                 break;
             case "132":
-                geekhackMessageService.sendMessage(alerts, IC_CHANNEL, IC_ROLE);
+                geekhackMessageService.sendMessage(newThreads, IC_CHANNEL, IC_ROLE);
                 break;
             default:
                 logger.error("what the aass");
         }
     }
-
-	@Override
-	public boolean isAlertListEmpty() {
-		return newTopicChecker.isAlertListEmpty();
-	}
 
 }

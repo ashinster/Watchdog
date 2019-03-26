@@ -15,7 +15,7 @@
             <fileNamePattern>/home/ec2-user/watchdog/logs/watchdog_%d{yyyy-MM-dd}.%i.log</fileNamePattern>
 
             <!-- each file should be at most 100MB, keep 60 days worth of history, but at most 20GB -->
-            <maxFileSize>100MB</maxFileSize>    
+            <maxFileSize>10MB</maxFileSize>    
             <maxHistory>60</maxHistory>
             <totalSizeCap>2GB</totalSizeCap>
         </rollingPolicy>

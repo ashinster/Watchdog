@@ -2,29 +2,22 @@ package shin.watchdog.data;
 
 import shin.watchdog.data.atom.Entry;
 
-public class Alert{
+/**
+ * POJO for a Geekhack thread which contains only the info we need from the RSS/ATOM feed
+ */
+public class GeekhackThread {
     String title;
     String author;
     String published;
     String id;
 
-    // User or role to ping
-    String recipient;
-
-    public Alert(Entry entry){
+    public GeekhackThread(Entry entry){
         this.title = entry.getTitle();
         this.author = entry.getAuthor().getName();
         this.published = entry.getPublished();
         this.id = entry.getId();
     }
 
-    /**
-     * @param recipient the recipient to set
-     */
-    public void setRecipient(String recipient) {
-        this.recipient = recipient;
-    }
- 
     /**
      * @return the title
      */
@@ -51,12 +44,5 @@ public class Alert{
      */
     public String getId() {
         return id;
-    }
-
-    /**
-     * @return the user
-     */
-    public String getRecipient() {
-        return recipient;
     }
 }
