@@ -31,6 +31,7 @@ public class InterestCheckProcessor extends GeekhackProcessor {
     public boolean filter(Entry entry){
         boolean isNew = false;
         if(isDebug) {
+            logger.info("New IC thread found: \"{}\" by {} ({})", entry.getTitle(), entry.getAuthor(), entry.getId());
             isNew = true;
         } else {
             // Check publish date
