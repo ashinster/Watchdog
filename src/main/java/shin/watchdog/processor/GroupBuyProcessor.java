@@ -19,7 +19,7 @@ public class GroupBuyProcessor extends GeekhackProcessor {
     @Override
     public void processHelper(List<GeekhackThread> newThreads) {
 
-        if(lastTopicId != 0.0f) {
+        if(this.lastTopicId != 0.0f) {
             sendAlert(newThreads);
         }
 
@@ -35,8 +35,10 @@ public class GroupBuyProcessor extends GeekhackProcessor {
             float postId = Float.parseFloat(entry.getId().substring("https://geekhack.org/index.php?topic=".length()));
             if(!entry.getTitle().startsWith("Re:")) {
                 if(postId > this.lastTopicId){
-                    logger.info("New GB thread found: \"{}\" by {} ({})", entry.getTitle(), entry.getAuthor(), entry.getId());
                     isNew = true;
+                    if(this.lastTopicId != 0.0f) { // First run
+                        logger.info("New GB thread found: \"{}\" by {} ({})", entry.getTitle(), entry.getAuthor(), entry.getId());
+                    }
                 }
             } else {
                 logger.info("GB entry starting with 'Re:' found: {} ({})", entry.getTitle(), entry.getId());
