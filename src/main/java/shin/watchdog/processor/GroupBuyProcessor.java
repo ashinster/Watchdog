@@ -35,6 +35,7 @@ public class GroupBuyProcessor extends GeekhackProcessor {
             float postId = Float.parseFloat(entry.getId().substring("https://geekhack.org/index.php?topic=".length()));
             if(!entry.getTitle().startsWith("Re:")) {
                 if(postId > this.lastTopicId){
+                    logger.info("New GB thread found: \"{}\" by {} ({})", entry.getTitle(), entry.getAuthor(), entry.getId());
                     isNew = true;
                 }
             } else {

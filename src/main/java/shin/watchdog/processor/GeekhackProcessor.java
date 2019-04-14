@@ -113,7 +113,6 @@ public abstract class GeekhackProcessor {
         newThreads = fullList.stream()
             .filter(entry -> filter(entry))
             .map(entry -> new GeekhackThread(entry))
-            .peek(geekhackThread -> logger.info("New thread found: \"{}\" by {} ({})", geekhackThread.getTitle(), geekhackThread.getAuthor(), geekhackThread.getId()))
             .collect(Collectors.toList());
 
         return newThreads;        

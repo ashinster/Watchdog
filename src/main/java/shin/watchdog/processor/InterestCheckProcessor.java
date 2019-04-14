@@ -36,6 +36,7 @@ public class InterestCheckProcessor extends GeekhackProcessor {
             // Check publish date
             if(Instant.parse(entry.getPublished()).toEpochMilli() > this.lastPubDate) {
                 if(!entry.getTitle().startsWith("Re:")) {
+                    logger.info("New IC thread found: \"{}\" by {} ({})", entry.getTitle(), entry.getAuthor(), entry.getId());
                     isNew = true;
                 } else {
                     logger.info("IC entry starting with 'Re:' found: {} ({})", entry.getTitle(), entry.getId());
