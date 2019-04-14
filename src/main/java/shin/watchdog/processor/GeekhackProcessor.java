@@ -51,9 +51,20 @@ public abstract class GeekhackProcessor {
      */
     protected final String subAction;
 
+    /**
+     * Name of the Geekhack board
+     */
     protected final String boardName;
+    
+    /**
+     * Discord role ID to ping
+     */
+    protected final String alertRoleId;
 
-    private List<String> lastRetrievedPosts;
+    /**
+     * Discord webhook url to post message in a channel
+     */
+    protected final String alertRoleChannelUrl;
 
     /**
      * Creates a Geekhack Processor which will retrieve n posts from a specific board, and alert if a new thread was found
@@ -62,20 +73,15 @@ public abstract class GeekhackProcessor {
      * @param limit The max number of posts/threads to retrieve from the endpoint
      * @param subAction The order of the posts/threads
      */
-    protected GeekhackProcessor(String boardName, String rssUrl, String boardId, String limit, String subAction) {
+    protected GeekhackProcessor(String boardName, String rssUrl, String boardId, String limit, String subAction, String alertRoleId, String alertRoleChannelUrl) {
         this.boardName = boardName;
         this.boardId = boardId;
         this.limit = limit;
         this.subAction = subAction;
         this.rssUrl = rssUrl + String.format(";boards=%s;limit=%s;sa=%s", boardId, limit, subAction);
-        this.lastRetrievedPosts = new ArrayList<>();
+        this.alertRoleId = alertRoleId;
+        this.alertRoleChannelUrl = alertRoleChannelUrl;
     }
-
-    /**
-     * Helper method for the process method which will perform the logic on the RSS/ATOM data
-     * @param newPosts The list of new posts/threads
-     */
-    abstract public void processHelper(List<GeekhackThread> newPosts);
 
     /**
      * Retrieves the new posts sends alerts
@@ -84,44 +90,54 @@ public abstract class GeekhackProcessor {
         // Get the feed via rss/atom
         Feed feed = postsService.makeCall(this.rssUrl, this.boardName);
 
+        // Check if feed is empty for whatever reason
         if (feed != null && feed.getEntry() != null && !feed.getEntry().isEmpty()) {
-            // Only get new posts after our last known entry publish date
             List<GeekhackThread> newThreads = getNewPosts(feed.getEntry());
 
-            if (!newThreads.isEmpty()) {
+            // Do a specific action based on the new posts found
+            if(!newThreads.isEmpty()){
                 processHelper(newThreads);
             }
         }
     }
 
     /**
-     * Filters out posts/threads that are older than the previous most recent item
-     * 
-     * @param fullList The list of posts/threads from the Geekhack RSS/ATOM feed
-     * @return List of new posts/threads
+     * Filter out old posts we've already seen out of the retrieved feed
+     * @param fullList The list of entries from the atom feed
+     * @return List of new GeekhackThreads that we should alert for
      */
-    private List<GeekhackThread> getNewPosts(List<Entry> fullList) {
-
+    public List<GeekhackThread> getNewPosts(List<Entry> fullList){
         List<GeekhackThread> newThreads = new ArrayList<>();
 
-        if(this.lastRetrievedPosts.isEmpty()){
-            this.lastRetrievedPosts = fullList.stream()
-                .map(entry -> entry.getId().substring(37))
-                .collect(Collectors.toList());
-        } else {
-            List<String> newThreadIds = new ArrayList<>();
-            
-            newThreads = fullList.stream()
-                .peek(entry -> newThreadIds.add(entry.getId().substring(37)))
-                .filter(entry -> !this.lastRetrievedPosts.contains(entry.getId().substring(37)) || isDebug)
-                .filter(entry -> !entry.getTitle().startsWith("Re:"))
-                .peek(entry -> logger.info("New thread found: \"{}\" by {} ({})", entry.getTitle(), entry.getAuthor().getName(), entry.getId()))
-                .map(entry -> new GeekhackThread(entry))
-                .collect(Collectors.toList());
+        // Filter out the old threads
+        newThreads = fullList.stream()
+            .filter(entry -> filter(entry))
+            .map(entry -> new GeekhackThread(entry))
+            .peek(geekhackThread -> logger.info("New thread found: \"{}\" by {} ({})", geekhackThread.getTitle(), geekhackThread.getAuthor(), geekhackThread.getId()))
+            .collect(Collectors.toList());
 
-            this.lastRetrievedPosts = newThreadIds;
-        }
-
-        return newThreads;
+        return newThreads;        
     }
+
+    /**
+     * Used to determine if a post is old or already been seen
+     * @param entry The atom entry
+     * @return True if the post is new
+     */
+    abstract boolean filter(Entry entry);
+    
+    /**
+     * Helper method for the process method which will perform the logic on the RSS/ATOM data
+     * @param newPosts The list of new posts/threads
+     */
+    abstract public void processHelper(List<GeekhackThread> feed);
+
+    /**
+     * Sends an alert for the list of new threads to the configured Discord channel
+     * and role
+     * 
+     * @param newThreads The list of new threads
+     */
+    abstract boolean sendAlert(List<GeekhackThread> newThreads);
+
 }
