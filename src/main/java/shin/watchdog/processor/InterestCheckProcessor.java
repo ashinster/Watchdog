@@ -31,13 +31,13 @@ public class InterestCheckProcessor extends GeekhackProcessor {
     public boolean filter(Entry entry){
         boolean isNew = false;
         if(isDebug) {
-            logger.info("New IC thread found: \"{}\" by {} ({})", entry.getTitle(), entry.getAuthor(), entry.getId());
+            logger.info("New IC thread found: \"{}\" by {} ({})", entry.getTitle(), entry.getAuthor().getName(), entry.getId());
             isNew = true;
         } else {
             // Check publish date
             if(Instant.parse(entry.getPublished()).toEpochMilli() > this.lastPubDate) {
                 if(!entry.getTitle().startsWith("Re:")) {
-                    logger.info("New IC thread found: \"{}\" by {} ({})", entry.getTitle(), entry.getAuthor(), entry.getId());
+                    logger.info("New IC thread found: \"{}\" by {} ({})", entry.getTitle(), entry.getAuthor().getName(), entry.getId());
                     isNew = true;
                 } else {
                     logger.info("IC entry starting with 'Re:' found: {} ({})", entry.getTitle(), entry.getId());

@@ -30,7 +30,7 @@ public class GroupBuyProcessor extends GeekhackProcessor {
     public boolean filter(Entry entry){
         boolean isNew = false;
         if(isDebug){
-            logger.info("New GB thread found: \"{}\" by {} ({})", entry.getTitle(), entry.getAuthor(), entry.getId());
+            logger.info("New GB thread found: \"{}\" by {} ({})", entry.getTitle(), entry.getAuthor().getName(), entry.getId());
             isNew = true;
         } else {
             float postId = Float.parseFloat(entry.getId().substring("https://geekhack.org/index.php?topic=".length()));
@@ -38,7 +38,7 @@ public class GroupBuyProcessor extends GeekhackProcessor {
                 if(postId > this.lastTopicId){
                     isNew = true;
                     if(this.lastTopicId != 0.0f) { // First run
-                        logger.info("New GB thread found: \"{}\" by {} ({})", entry.getTitle(), entry.getAuthor(), entry.getId());
+                        logger.info("New GB thread found: \"{}\" by {} ({})", entry.getTitle(), entry.getAuthor().getName(), entry.getId());
                     }
                 }
             } else {
