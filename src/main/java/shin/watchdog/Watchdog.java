@@ -42,14 +42,14 @@ public class Watchdog{
         MDC.clear();
     }
 
-    //@Scheduled(cron = "${interval:0} * * * * *")
+    @Scheduled(cron = "${interval:0} * * * * *")
     public void getInterestChecks(){
         MDC.put("uuid", UUID.randomUUID().toString());
         icProcessor.process();
         MDC.clear();
     }
 
-    //@Scheduled(cron = "${interval:0} * * * * *")
+    @Scheduled(cron = "${interval:0} * * * * *")
     public void getGroupBuys(){
         MDC.put("uuid", UUID.randomUUID().toString());
         gbProcessor.process();

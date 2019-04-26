@@ -32,7 +32,7 @@ public class MechMarketService {
 
         JsonObject redditJson = null;
 
-        String mmNewPostsUrl = "https://www.reddit.com/r/mechmarket/new.json";
+        String mmNewPostsUrl = "https://www.reddit.com/r/mechmarket/new.json?limit=10";
 
         HttpGet httpGet = new HttpGet(mmNewPostsUrl);
 

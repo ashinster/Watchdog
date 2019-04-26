@@ -56,6 +56,7 @@ public class MechMarketProcessor {
         });
 
         if(!newPosts.isEmpty()) {
+            this.lastPubDate = newPosts.get(0).get("created").getAsLong();
             sendAlert(newPosts);
         }
     }
