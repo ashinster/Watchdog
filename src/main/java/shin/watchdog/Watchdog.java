@@ -12,6 +12,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 
 import shin.watchdog.processor.GeekhackProcessor;
+import shin.watchdog.processor.MechMarketProcessor;
 
 @Configuration
 @EnableScheduling
@@ -31,14 +32,24 @@ public class Watchdog{
     @Autowired
     private GeekhackProcessor gbProcessor;
 
+    @Autowired
+    private MechMarketProcessor mmProcessor;
+
     @Scheduled(cron = "${interval:0} * * * * *")
+    public void mechmarket(){
+        MDC.put("uuid", UUID.randomUUID().toString());
+        mmProcessor.process();
+        MDC.clear();
+    }
+
+    //@Scheduled(cron = "${interval:0} * * * * *")
     public void getInterestChecks(){
         MDC.put("uuid", UUID.randomUUID().toString());
         icProcessor.process();
         MDC.clear();
     }
 
-    @Scheduled(cron = "${interval:0} * * * * *")
+    //@Scheduled(cron = "${interval:0} * * * * *")
     public void getGroupBuys(){
         MDC.put("uuid", UUID.randomUUID().toString());
         gbProcessor.process();

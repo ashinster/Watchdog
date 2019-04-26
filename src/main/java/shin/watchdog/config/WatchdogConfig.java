@@ -13,6 +13,7 @@ import net.dv8tion.jda.core.JDABuilder;
 import shin.watchdog.processor.GeekhackProcessor;
 import shin.watchdog.processor.GroupBuyProcessor;
 import shin.watchdog.processor.InterestCheckProcessor;
+import shin.watchdog.processor.MechMarketProcessor;
 import shin.watchdog.processor.bot.AlertRequestListener;
 
 @Configuration
@@ -29,6 +30,11 @@ public class WatchdogConfig {
         jda.awaitReady();
 
         return jda;
+    }
+
+    @Bean
+    public MechMarketProcessor mechmarketProcessor() {
+        return new MechMarketProcessor();
     }
     
 
