@@ -58,7 +58,9 @@ public class AlertRequestListener extends ListenerAdapter{
                     if(serverRoles.isEmpty() || 
                         (!serverRoles.get(0).getName().equalsIgnoreCase("group buys") 
                         && !serverRoles.get(0).getName().equalsIgnoreCase("interest checks")
-                        && !serverRoles.get(0).getName().equalsIgnoreCase("fartisans"))){ 
+                        && !serverRoles.get(0).getName().equalsIgnoreCase("fartisans"))
+                        && !serverRoles.get(0).getName().equalsIgnoreCase("mm interest checks")
+                        && !serverRoles.get(0).getName().equalsIgnoreCase("mm group buys")){ 
                         logger.info("User {} requested an invalid role: {}", discordUser.getAsTag(), request);   
                         textChannel.sendMessageFormat("%s The specified role is invalid: `%s`", member.getAsMention(), request).queue();  
                     } else {

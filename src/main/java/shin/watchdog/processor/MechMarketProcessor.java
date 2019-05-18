@@ -100,14 +100,14 @@ public class MechMarketProcessor {
             mmMessageService.sendMessage(
                 interestChecks, 
                 "https://discordapp.com/api/webhooks/571151483513339915/aPlFEOHiQZfuEyyZmOgY4U684q0xrJi09vfS84fj0vPwhSiDFXrApe_DF8zqbdN201kU", 
-                "<@&477264441319096321>");
+                "<@&572554123132534789>");
         }
 
         if(!groupBuys.isEmpty()) {
             mmMessageService.sendMessage(
                 groupBuys, 
                 "https://discordapp.com/api/webhooks/571153041332371466/Vq0uwmgIbt1gDni_bvtWj0ZTxAa2oSMqcGVwW6wwh648bUF2OYunUgORXUHFmQbSMrBR", 
-                "<@&477264488983429130>");
+                "<@&572554297699729409>");
         }
 
         if(!artisans.isEmpty()) {
